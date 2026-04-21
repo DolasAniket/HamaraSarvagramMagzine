@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Submit — Hamara SarvaGram</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--sf:#F47920;--sf-d:#C9601A;--sf-l:#FEF0E6;--bl:#2B398E;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--radius:12px;}
+body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
+.nav{position:sticky;top:0;z-index:500;background:var(--bl);display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;box-shadow:0 2px 16px rgba(0,0,0,.2);}
+.nav-brand{font-family:'Playfair Display',serif;font-size:17px;color:#fff;font-weight:700;text-decoration:none;}
+.nav-links{display:flex;gap:2px;}
+.nav-link{color:rgba(255,255,255,.75);font-size:13px;font-weight:500;padding:6px 12px;border-radius:20px;text-decoration:none;transition:all .15s;}
+.nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,.12);}
+.hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:4px;}
+.hamburger span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;}
+@media(max-width:700px){.nav-links{display:none;}.hamburger{display:flex;}}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;}
+.overlay.show{display:block;}
+.mm{position:fixed;top:0;right:0;width:220px;height:100vh;background:var(--bl);z-index:450;transform:translateX(100%);transition:transform .3s;padding:16px 0;}
+.mm.open{transform:none;}
+.mm-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 16px;margin-bottom:12px;display:block;margin-left:auto;}
+.mm-item{color:rgba(255,255,255,.8);font-size:14px;padding:10px 20px;text-decoration:none;display:block;}
+.mm-item:hover{color:#fff;background:rgba(255,255,255,.1);}
+
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 80px;}
+.pg-head{text-align:center;padding:20px 0 22px;}
+.pg-head h1{font-family:'Playfair Display',serif;font-size:26px;color:var(--bl);font-weight:700;margin-bottom:5px;}
+.pg-head p{font-size:13px;color:var(--mu);line-height:1.5;}
+
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:400px){.cat-grid{grid-template-columns:repeat(2,1fr);}}
+.cat-card{border:1.5px solid var(--bdr);border-radius:var(--radius);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card);}
+.cat-card:hover{border-color:var(--bl);background:var(--bl-l);}
+.cat-card.sel{border-color:var(--bl);background:var(--bl);}
+.cat-card.sel .cat-label{color:#fff;}
+.cat-icon{font-size:26px;margin-bottom:5px;display:block;}
+.cat-label{font-size:12px;font-weight:600;color:var(--ink);}
+
+.fcard{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:18px;margin-bottom:14px;}
+.fcard-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--bdr);}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.field label .req{color:var(--sf);}
+.field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1px solid rgba(0,0,0,.12);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;color:var(--ink);background:var(--bg);outline:none;transition:border .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--bl);background:#fff;box-shadow:0 0 0 3px rgba(43,57,142,.1);}
+.field textarea{resize:vertical;line-height:1.55;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.field-row{grid-template-columns:1fr;}}
+.wc{font-size:11px;color:var(--mu);text-align:right;margin-top:3px;}
+.hint{font-size:11px;color:var(--mu);margin-top:3px;line-height:1.4;}
+.upload-z{border:1.5px dashed rgba(0,0,0,.15);border-radius:8px;padding:16px;text-align:center;cursor:pointer;background:var(--bg);transition:all .2s;}
+.upload-z:hover{border-color:var(--sf);background:var(--sf-l);}
+.uz-icon{font-size:22px;margin-bottom:3px;}
+.uz-text{font-size:13px;color:var(--mu);}
+.uz-name{font-size:12px;color:var(--gr-d);font-weight:600;margin-top:3px;}
+.star-row{display:flex;gap:8px;}
+.star{font-size:28px;color:#ddd;cursor:pointer;transition:color .15s;user-select:none;}
+.star.on{color:var(--sf);}
+.mood-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.mpill{padding:5px 14px;border-radius:20px;border:1px solid var(--bdr);background:var(--card);font-size:12px;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;color:var(--ink);}
+.mpill.sel{background:var(--bl);color:#fff;border-color:var(--bl);}
+.form-variant{display:none;}
+.form-variant.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none;}
+.alert.err{background:#FFEBEE;color:#C62828;}
+.alert.show{display:block;}
+.btn-sf{width:100%;padding:13px;border-radius:var(--radius);background:var(--sf);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;letter-spacing:.02em;}
+.btn-sf:hover{background:var(--sf-d);}
+.btn-sf:disabled{background:#bbb;cursor:default;}
+.form-note{text-align:center;font-size:12px;color:var(--mu);margin-top:10px;line-height:1.5;}
+
+.success-box{display:none;text-align:center;padding:48px 20px;}
+.suc-icon{font-size:60px;margin-bottom:16px;}
+.suc-title{font-family:'Playfair Display',serif;font-size:26px;color:var(--gr-d);font-weight:700;margin-bottom:8px;}
+.suc-msg{font-size:14px;color:var(--mu);line-height:1.6;max-width:300px;margin:0 auto 16px;}
+.suc-ref{background:var(--gr-l);border-radius:8px;padding:8px 20px;display:inline-block;font-size:13px;font-weight:700;color:var(--gr-d);margin-bottom:20px;}
+.btn-bl{padding:10px 24px;border-radius:var(--radius);background:var(--bl);color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;text-decoration:none;display:inline-block;}
+
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);padding:6px 0 10px;z-index:300;}
+@media(max-width:700px){.bottom-nav{display:flex;}body{padding-bottom:64px;}}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;padding:2px 0;color:var(--mu);font-size:10px;background:none;border:none;font-family:'Mukta',sans-serif;}
+.bn-item.active{color:var(--bl);}
+.bn-icon{font-size:20px;}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeMM()"></div>
+<div class="mm" id="mm">
+  <button class="mm-x" onclick="closeMM()">✕</button>
+  <a class="mm-item" href="index.html">📰 Magazine</a>
+  <a class="mm-item" href="submit.html">✏️ Submit Thought</a>
+  <a class="mm-item" href="mysubs.html">📋 My Submissions</a>
+</div>
+
+<nav class="nav">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="hamburger" onclick="openMM()"><span></span><span></span><span></span></button>
+    <a class="nav-brand" href="index.html">Hamara SarvaGram</a>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Magazine</a>
+    <a class="nav-link active" href="submit.html">Submit</a>
+    <a class="nav-link" href="mysubs.html">My Submissions</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="form-area">
+    <div class="pg-head">
+      <h1>Share Your Thought</h1>
+      <p>Choose a category — the form adjusts to what you want to share. Reviewed by the editorial team before publishing.</p>
+    </div>
+    <div class="alert err" id="err-box"></div>
+
+    <!-- IDENTITY -->
+    <div class="fcard">
+      <div class="fcard-title">Your Details</div>
+      <div class="field-row">
+        <div class="field"><label>Employee ID <span class="req">*</span></label><input type="text" id="f-empid" placeholder="e.g. EMP-1042"/></div>
+        <div class="field"><label>Your Name <span class="req">*</span></label><input type="text" id="f-name" placeholder="Full name"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Zone <span class="req">*</span></label>
+          <select id="f-zone">
+            <option value="">Select zone…</option>
+            <option value="gujarat">Gujarat</option>
+            <option value="karnataka">Karnataka</option>
+            <option value="maharashtra">Maharashtra</option>
+            <option value="rajasthan">Rajasthan</option>
+            <option value="telangana">Telangana</option>
+          </select>
+        </div>
+        <div class="field"><label>Branch (optional)</label><input type="text" id="f-branch" placeholder="e.g. Nashik, Dharwad"/></div>
+      </div>
+    </div>
+
+    <!-- CATEGORY -->
+    <div class="fcard">
+      <div class="fcard-title">Choose Category <span class="req">*</span></div>
+      <div class="cat-grid">
+        <div class="cat-card sel" data-cat="thought" onclick="selCat(this)"><span class="cat-icon">💬</span><span class="cat-label">Thought</span></div>
+        <div class="cat-card" data-cat="idea" onclick="selCat(this)"><span class="cat-icon">💡</span><span class="cat-label">Idea</span></div>
+        <div class="cat-card" data-cat="achievement" onclick="selCat(this)"><span class="cat-icon">🏅</span><span class="cat-label">Achievement</span></div>
+        <div class="cat-card" data-cat="announcement" onclick="selCat(this)"><span class="cat-icon">📣</span><span class="cat-label">Announcement</span></div>
+        <div class="cat-card" data-cat="story" onclick="selCat(this)"><span class="cat-icon">📸</span><span class="cat-label">Field Story</span></div>
+        <div class="cat-card" data-cat="feedback" onclick="selCat(this)"><span class="cat-icon">⭐</span><span class="cat-label">Feedback</span></div>
+      </div>
+    </div>
+
+    <!-- THOUGHT -->
+    <div class="form-variant active" id="fv-thought">
+      <div class="fcard">
+        <div class="fcard-title">💬 Your Thought</div>
+        <div class="field"><label>Headline <span class="req">*</span></label><input type="text" id="t-title" placeholder="Give your thought a short title"/></div>
+        <div class="field"><label>Write freely <span class="req">*</span></label><textarea id="t-body" rows="5" placeholder="Share a moment, feeling, or message." oninput="wc(this,'t-wc',150)"></textarea><div class="wc" id="t-wc">0 / 150 words</div></div>
+        <div class="field"><label>Mood</label><div class="mood-pills"><button class="mpill sel" onclick="selPill(this)">Inspiring</button><button class="mpill" onclick="selPill(this)">Reflective</button><button class="mpill" onclick="selPill(this)">Humorous</button><button class="mpill" onclick="selPill(this)">Grateful</button><button class="mpill" onclick="selPill(this)">Hopeful</button></div></div>
+      </div>
+    </div>
+
+    <!-- IDEA -->
+    <div class="form-variant" id="fv-idea">
+      <div class="fcard">
+        <div class="fcard-title">💡 Your Idea</div>
+        <div class="field"><label>Idea Title <span class="req">*</span></label><input type="text" id="i-title" placeholder="Clear, concise title"/></div>
+        <div class="field"><label>Problem it solves <span class="req">*</span></label><textarea rows="3" id="i-problem" placeholder="What challenge does this address?"></textarea></div>
+        <div class="field"><label>How it works <span class="req">*</span></label><textarea id="i-body" rows="4" placeholder="Describe simply." oninput="wc(this,'i-wc',150)"></textarea><div class="wc" id="i-wc">0 / 150 words</div></div>
+        <div class="field-row">
+          <div class="field"><label>Expected benefit</label><select id="i-benefit"><option>Saves time</option><option>Saves cost</option><option>Better customer experience</option><option>Team morale</option><option>Revenue growth</option><option>Other</option></select></div>
+          <div class="field"><label>Effort to implement</label><select id="i-effort"><option>Low — easy quick win</option><option>Medium — needs some work</option><option>High — big project</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENT -->
+    <div class="form-variant" id="fv-achievement">
+      <div class="fcard">
+        <div class="fcard-title">🏅 Achievement</div>
+        <div class="field"><label>Achievement Title <span class="req">*</span></label><input type="text" id="a-title" placeholder="e.g. Zero NPA for Q1 2026"/></div>
+        <div class="field-row">
+          <div class="field"><label>Person / Team <span class="req">*</span></label><input type="text" id="a-team" placeholder="Name(s) or team"/></div>
+          <div class="field"><label>Category</label><select id="a-cat"><option>Sales</option><option>Customer Service</option><option>Operations</option><option>Innovation</option><option>Community Outreach</option><option>Compliance</option></select></div>
+        </div>
+        <div class="field"><label>Describe the achievement <span class="req">*</span></label><textarea id="a-body" rows="5" placeholder="Use numbers — '200 families', 'Zero NPAs'. Numbers make impact visible." oninput="wc(this,'a-wc',150)"></textarea><div class="wc" id="a-wc">0 / 150 words</div></div>
+        <div class="field"><label>Add a team photo</label><div class="upload-z" onclick="document.getElementById('a-photo').click()"><div class="uz-icon">📷</div><div class="uz-text">Tap to add a photo (optional)</div><div class="uz-name" id="a-photo-name"></div></div><input type="file" id="a-photo" accept="image/*" style="display:none" onchange="showFN(this,'a-photo-name')"/></div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENT -->
+    <div class="form-variant" id="fv-announcement">
+      <div class="fcard">
+        <div class="fcard-title">📣 Announcement</div>
+        <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="an-title" placeholder="e.g. Safety Week Programme — Karnataka Zone"/></div>
+        <div class="field-row">
+          <div class="field"><label>Date / Period</label><input type="date" id="an-date"/></div>
+          <div class="field"><label>Location</label><input type="text" id="an-loc" placeholder="Zone / Branch / Online"/></div>
+        </div>
+        <div class="field"><label>Details <span class="req">*</span></label><textarea id="an-body" rows="5" placeholder="Who should attend, what's happening, how to register." oninput="wc(this,'an-wc',120)"></textarea><div class="wc" id="an-wc">0 / 120 words</div></div>
+        <div class="field-row">
+          <div class="field"><label>Target audience</label><select id="an-aud"><option>All Employees</option><option>Field Officers</option><option>SarvaMitras</option><option>Branch Managers</option><option>Zone Heads</option><option>HR Team</option></select></div>
+          <div class="field"><label>RSVP by</label><input type="date" id="an-rsvp"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIELD STORY -->
+    <div class="form-variant" id="fv-story">
+      <div class="fcard">
+        <div class="fcard-title">📸 Field Story</div>
+        <div class="field"><label>Story Headline <span class="req">*</span></label><input type="text" id="s-title" placeholder="e.g. First harvest in Sinnar block changes everything"/></div>
+        <div class="field-row">
+          <div class="field"><label>Village / District <span class="req">*</span></label><input type="text" id="s-village" placeholder="e.g. Sinnar, Nashik"/></div>
+          <div class="field"><label>Story type</label><select id="s-type"><option>Farmer / Customer Story</option><option>SarvaMitra Story</option><option>Community Event</option><option>Health & Welfare</option><option>On-Ground Moment</option></select></div>
+        </div>
+        <div class="field"><label>Your story <span class="req">*</span></label><textarea id="s-body" rows="7" placeholder="Tell us what happened — what you saw, felt, and what it meant. Mention names. Be specific." oninput="wc(this,'s-wc',200)"></textarea><div class="wc" id="s-wc">0 / 200 words</div><div class="hint">💡 Mention real names, actual villages, and specific numbers for greater impact.</div></div>
+        <div class="field"><label>Photos from the field</label><div class="upload-z" onclick="document.getElementById('s-photo').click()"><div class="uz-icon">📷</div><div class="uz-text">Add up to 3 photos (optional but encouraged)</div><div class="uz-name" id="s-photo-name"></div></div><input type="file" id="s-photo" accept="image/*" multiple style="display:none" onchange="showFN(this,'s-photo-name')"/></div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="form-variant" id="fv-feedback">
+      <div class="fcard">
+        <div class="fcard-title">⭐ Feedback</div>
+        <div class="field"><label>Feedback title <span class="req">*</span></label><input type="text" id="fb-title" placeholder="e.g. Great training but needs better materials"/></div>
+        <div class="field"><label>Feedback about <span class="req">*</span></label><select id="fb-about"><option>Training Programme</option><option>SarvaGram App / Tools</option><option>Branch Operations</option><option>Management Support</option><option>SarvaMitra Experience</option><option>HR Processes</option><option>Other</option></select></div>
+        <div class="field"><label>Your overall rating <span class="req">*</span></label><div class="star-row" id="stars"><span class="star" onclick="rate(1)">★</span><span class="star" onclick="rate(2)">★</span><span class="star" onclick="rate(3)">★</span><span class="star" onclick="rate(4)">★</span><span class="star" onclick="rate(5)">★</span></div><input type="hidden" id="fb-rating" value="0"/></div>
+        <div class="field"><label>What worked well?</label><textarea rows="3" id="fb-good" placeholder="Tell us what you liked."></textarea></div>
+        <div class="field"><label>What could be better? <span class="req">*</span></label><textarea id="fb-body" rows="4" placeholder="Suggestions for improvement…" oninput="wc(this,'fb-wc',120)"></textarea><div class="wc" id="fb-wc">0 / 120 words</div></div>
+      </div>
+    </div>
+
+    <button class="btn-sf" id="submit-btn" onclick="doSubmit()">Submit for Review →</button>
+    <div class="form-note">Reviewed by editorial team within 24–48 hours</div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-box" id="success-area">
+    <div class="suc-icon">🌿</div>
+    <div class="suc-title">Submitted!</div>
+    <div class="suc-msg">Your story is with the editorial team. You'll be notified once reviewed.</div>
+    <div class="suc-ref" id="suc-ref">Ref: SG-2026-XXXX</div><br/><br/>
+    <button class="btn-sf" style="max-width:240px;display:inline-block;" onclick="resetForm()">Submit Another</button><br/><br/>
+    <a class="btn-bl" href="mysubs.html">View My Submissions →</a>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="bn-item" onclick="location.href='index.html'"><div class="bn-icon">📰</div>Feed</button>
+  <button class="bn-item active"><div class="bn-icon">✏️</div>Submit</button>
+  <button class="bn-item" onclick="location.href='mysubs.html'"><div class="bn-icon">📋</div>Mine</button>
+</nav>
+
+<script src="supabase.js"></script>
+<script>
+let currentCat='thought', starVal=0;
+const catVariants={thought:'fv-thought',idea:'fv-idea',achievement:'fv-achievement',announcement:'fv-announcement',story:'fv-story',feedback:'fv-feedback'};
+const titleFields={thought:'t-title',idea:'i-title',achievement:'a-title',announcement:'an-title',story:'s-title',feedback:'fb-title'};
+const bodyFields={thought:'t-body',idea:'i-body',achievement:'a-body',announcement:'an-body',story:'s-body',feedback:'fb-body'};
+
+function selCat(el){
+  document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  currentCat=el.dataset.cat;
+  document.querySelectorAll('.form-variant').forEach(v=>v.classList.remove('active'));
+  document.getElementById(catVariants[currentCat]).classList.add('active');
+}
+function selPill(el){el.closest('.mood-pills').querySelectorAll('.mpill').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');}
+function wc(el,outId,max){const w=el.value.trim().split(/\s+/).filter(w=>w.length>0).length;document.getElementById(outId).textContent=`${w} / ${max} words`;}
+function rate(n){starVal=n;document.getElementById('fb-rating').value=n;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+function showFN(input,id){document.getElementById(id).textContent=Array.from(input.files).map(f=>f.name).join(', ');}
+function showErr(msg){const el=document.getElementById('err-box');el.textContent=msg;el.classList.add('show');el.scrollIntoView({behavior:'smooth',block:'center'});}
+function clearErr(){document.getElementById('err-box').classList.remove('show');}
+
+async function doSubmit(){
+  clearErr();
+  const empId=document.getElementById('f-empid').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const zone=document.getElementById('f-zone').value;
+  const branch=document.getElementById('f-branch').value.trim();
+  if(!empId){showErr('Please enter your Employee ID.');return;}
+  if(!name){showErr('Please enter your name.');return;}
+  if(!zone){showErr('Please select your zone.');return;}
+  const title=(document.getElementById(titleFields[currentCat])?.value||'').trim();
+  const content=(document.getElementById(bodyFields[currentCat])?.value||'').trim();
+  if(!title){showErr('Please enter a title.');return;}
+  if(!content){showErr('Please write your content.');return;}
+  if(currentCat==='feedback'&&starVal===0){showErr('Please give a star rating.');return;}
+
+  const extraData={};
+  if(currentCat==='feedback'){extraData.rating=starVal;extraData.good=document.getElementById('fb-good')?.value||'';}
+  if(currentCat==='announcement'){extraData.date=document.getElementById('an-date')?.value||'';extraData.location=document.getElementById('an-loc')?.value||'';extraData.audience=document.getElementById('an-aud')?.value||'';}
+  if(currentCat==='story'){extraData.village=document.getElementById('s-village')?.value||'';extraData.type=document.getElementById('s-type')?.value||'';}
+  if(currentCat==='idea'){extraData.problem=document.getElementById('i-problem')?.value||'';extraData.benefit=document.getElementById('i-benefit')?.value||'';}
+  if(currentCat==='achievement'){extraData.team=document.getElementById('a-team')?.value||'';extraData.category=document.getElementById('a-cat')?.value||'';}
+
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+  try{
+    await SG.submitThought({emp_id:empId,emp_name:name,zone_slug:zone,branch:branch,category:currentCat,title,content,extra_data:extraData});
+    document.getElementById('suc-ref').textContent='Ref: SG-2026-'+Math.floor(1000+Math.random()*9000);
+    document.getElementById('form-area').style.display='none';
+    document.getElementById('success-area').style.display='block';
+    window.scrollTo(0,0);
+  }catch(e){
+    console.error(e);
+    showErr('Submission failed: '+(e.message||JSON.stringify(e)));
+    btn.disabled=false;btn.textContent='Submit for Review →';
+  }
+}
+
+function resetForm(){
+  document.getElementById('form-area').style.display='block';
+  document.getElementById('success-area').style.display='none';
+  document.querySelectorAll('input[type=text],textarea,input[type=date]').forEach(el=>el.value='');
+  document.getElementById('f-zone').value='';
+  document.getElementById('submit-btn').disabled=false;
+  document.getElementById('submit-btn').textContent='Submit for Review →';
+  window.scrollTo(0,0);
+}
+function openMM(){document.getElementById('mm').classList.add('open');document.getElementById('overlay').classList.add('show');}
+function closeMM(){document.getElementById('mm').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+</script>
+</body>
+</html>

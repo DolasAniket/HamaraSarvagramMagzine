@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Hamara SarvaGram</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--sf:#F47920;--sf-l:#FEF0E6;--bl:#2B398E;--bl-m:#3D52B8;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--red:#C62828;--red-l:#FFEBEE;--radius:12px;}
+body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bl);padding:20px;}
+.login-box{background:var(--card);border-radius:16px;padding:36px 32px;max-width:380px;width:100%;text-align:center;}
+.login-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--bl);font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--mu);margin-bottom:28px;}
+.lfield{text-align:left;margin-bottom:16px;}
+.lfield label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.lfield input{width:100%;padding:11px 14px;border:1px solid rgba(0,0,0,.12);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;outline:none;}
+.lfield input:focus{border-color:var(--bl);}
+.login-btn{width:100%;padding:12px;border-radius:8px;background:var(--bl);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;}
+.login-btn:hover{background:var(--bl-m);}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+.login-note{font-size:11px;color:var(--mu);margin-top:16px;line-height:1.5;}
+
+/* ADMIN SHELL */
+.admin-shell{display:none;min-height:100vh;}
+.admin-nav{background:var(--bl);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.an-brand{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;display:flex;align-items:center;gap:8px;}
+.admin-badge{background:var(--red);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
+.an-tabs{display:flex;gap:2px;}
+.an-tab{color:rgba(255,255,255,.7);font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;border:none;background:none;font-family:'Mukta',sans-serif;transition:all .15s;}
+.an-tab:hover,.an-tab.active{color:#fff;background:rgba(255,255,255,.12);}
+.logout-btn{color:rgba(255,255,255,.6);font-size:13px;background:none;border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Mukta',sans-serif;}
+.logout-btn:hover{color:#fff;}
+@media(max-width:640px){.an-tabs{display:none;}}
+.mobile-tabs{display:none;background:var(--card);border-bottom:1px solid var(--bdr);}
+@media(max-width:640px){.mobile-tabs{display:flex;overflow-x:auto;}}
+.mt-tab{flex:1;padding:10px 8px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;font-family:'Mukta',sans-serif;color:var(--mu);border-bottom:3px solid transparent;white-space:nowrap;}
+.mt-tab.active{color:var(--bl);border-bottom-color:var(--bl);}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--bl-m);}
+@media(max-width:500px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+.astat{padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.1);}
+.astat:last-child{border-right:none;}
+.astat-n{font-size:20px;font-weight:700;color:#fff;}
+.astat-l{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;}
+.n-pend{color:#FFD54F;}
+.n-app{color:#90CAF9;}
+.n-pub{color:#A5D6A7;}
+.n-rej{color:#EF9A9A;}
+
+/* PANELS */
+.panel{display:none;padding:16px;max-width:1100px;margin:0 auto;}
+.panel.active{display:block;}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.fb-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--card);cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;color:var(--ink);}
+.fb-btn:hover,.fb-btn.active{background:var(--bl);color:#fff;border-color:var(--bl);}
+.fb-sel{padding:6px 12px;border-radius:20px;font-size:13px;border:1px solid var(--bdr);background:var(--card);font-family:'Mukta',sans-serif;outline:none;color:var(--ink);}
+.fb-search{flex:1;min-width:140px;padding:7px 14px;border:1px solid var(--bdr);border-radius:20px;font-size:13px;font-family:'Mukta',sans-serif;outline:none;}
+.dl-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--gr-l);color:var(--gr-d);cursor:pointer;font-family:'Mukta',sans-serif;white-space:nowrap;}
+.dl-btn:hover{background:var(--gr);color:#fff;}
+
+/* REVIEW CARDS */
+.rev-card{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:16px;margin-bottom:12px;transition:box-shadow .2s;}
+.rev-card:hover{box-shadow:0 4px 16px rgba(43,57,142,.1);}
+.rc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.rc-av{width:36px;height:36px;border-radius:50%;background:var(--bl-l);color:var(--bl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.rc-info{flex:1;}
+.rc-name{font-size:14px;font-weight:700;}
+.rc-meta{font-size:11px;color:var(--mu);margin-top:1px;}
+.rc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700;white-space:nowrap;}
+.rs-pend{background:#FFF3E0;color:#E65100;}
+.rs-app{background:#E3F2FD;color:#1565C0;}
+.rs-pub{background:var(--gr-l);color:var(--gr-d);}
+.rs-rej{background:var(--red-l);color:var(--red);}
+.rc-content{font-size:13px;color:var(--ink);line-height:1.5;background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:12px;}
+.rc-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+.rc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.act{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;}
+.act:disabled{opacity:.5;cursor:default;}
+.act-app{background:var(--gr-l);color:var(--gr-d);}
+.act-app:hover:not(:disabled){background:var(--gr);color:#fff;}
+.act-rej-btn{background:var(--red-l);color:var(--red);}
+.act-rej-btn:hover:not(:disabled){background:var(--red);color:#fff;}
+.act-pub{background:var(--bl);color:#fff;}
+.act-pub:hover:not(:disabled){background:var(--bl-m);}
+.act-unpub{background:#EEE;color:var(--mu);}
+.act-unpub:hover{background:#DDD;}
+.rc-sel{padding:5px 10px;border-radius:20px;font-size:12px;border:1px solid var(--bdr);background:var(--card);font-family:'Mukta',sans-serif;outline:none;cursor:pointer;}
+.pdots{display:flex;gap:4px;align-items:center;}
+.pdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--bdr);cursor:pointer;background:var(--bg);transition:all .15s;}
+.pdot.p1.on{background:var(--gr);border-color:var(--gr);}
+.pdot.p2.on{background:var(--sf);border-color:var(--sf);}
+.pdot.p3.on{background:var(--red);border-color:var(--red);}
+.rej-box{margin-top:10px;display:none;}
+.rej-box textarea{width:100%;padding:8px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:'Mukta',sans-serif;resize:none;outline:none;margin-bottom:6px;}
+.rej-confirm{padding:6px 14px;border-radius:8px;background:var(--red);color:#fff;border:none;cursor:pointer;font-family:'Mukta',sans-serif;font-size:13px;font-weight:600;}
+
+/* PUBLISH PANEL */
+.pub-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
+@media(max-width:800px){.pub-grid{grid-template-columns:1fr;}}
+.panel-card{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:16px;}
+.pc-title{font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
+.cap-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cap-name{font-size:13px;font-weight:600;width:120px;flex-shrink:0;}
+.cap-bar-wrap{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.cap-bar{height:100%;border-radius:4px;transition:width .4s;}
+.cap-full{background:var(--gr);}
+.cap-mid{background:var(--sf);}
+.cap-empty{background:var(--bdr);}
+.cap-count{font-size:11px;color:var(--mu);width:36px;text-align:right;}
+.pq-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.pq-item:last-child{border-bottom:none;}
+.pq-title{flex:1;font-size:13px;font-weight:600;line-height:1.3;}
+.pq-meta{font-size:11px;color:var(--mu);}
+.pq-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;}
+
+/* PUBLISHED */
+.pub-item{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
+.pi-body{flex:1;}
+.pi-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+.pi-meta{font-size:11px;color:var(--mu);margin:4px 0 6px;}
+.pi-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;}
+.pi-zone{font-size:10px;background:var(--sf-l);color:#C9601A;padding:2px 7px;border-radius:8px;font-weight:600;margin-left:4px;}
+
+/* UTILS */
+.loader{text-align:center;padding:32px;color:var(--mu);}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--bl);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:40px;color:var(--mu);font-size:13px;}
+.toast{position:fixed;bottom:24px;right:20px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:1000;}
+.toast.show{display:block;animation:slideUp .25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">Hamara SarvaGram</div>
+    <div class="login-sub">Editorial Admin Panel · Restricted Access</div>
+    <div class="lfield"><label>Admin Password</label><input type="password" id="pw-input" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="login-err">Incorrect password. Please try again.</div>
+    <div class="login-note">This panel is for authorised editorial staff only.</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-shell" class="admin-shell">
+  <nav class="admin-nav">
+    <div class="an-brand">SG Admin <span class="admin-badge">ADMIN</span></div>
+    <div class="an-tabs">
+      <button class="an-tab active" onclick="showPanel('review',this)">📋 Review</button>
+      <button class="an-tab" onclick="showPanel('publish',this)">🚀 Publish Control</button>
+      <button class="an-tab" onclick="showPanel('published',this)">📰 Live Content</button>
+    </div>
+    <button class="logout-btn" onclick="SG.adminLogout()">Sign Out</button>
+  </nav>
+  <div class="mobile-tabs">
+    <button class="mt-tab active" onclick="showPanel('review',this)">📋 Review</button>
+    <button class="mt-tab" onclick="showPanel('publish',this)">🚀 Publish</button>
+    <button class="mt-tab" onclick="showPanel('published',this)">📰 Live</button>
+  </div>
+  <div class="stats-row">
+    <div class="astat"><div class="astat-n" id="st-total">—</div><div class="astat-l">Total</div></div>
+    <div class="astat"><div class="astat-n n-pend" id="st-pend">—</div><div class="astat-l">Pending</div></div>
+    <div class="astat"><div class="astat-n n-app" id="st-app">—</div><div class="astat-l">Approved</div></div>
+    <div class="astat"><div class="astat-n n-pub" id="st-pub">—</div><div class="astat-l">Published</div></div>
+    <div class="astat"><div class="astat-n n-rej" id="st-rej">—</div><div class="astat-l">Rejected</div></div>
+  </div>
+
+  <!-- REVIEW PANEL -->
+  <div class="panel active" id="panel-review">
+    <div class="filter-bar">
+      <button class="fb-btn active" onclick="filterSubs('all',this)">All</button>
+      <button class="fb-btn" onclick="filterSubs('pending',this)">Pending</button>
+      <button class="fb-btn" onclick="filterSubs('approved',this)">Approved</button>
+      <button class="fb-btn" onclick="filterSubs('rejected',this)">Rejected</button>
+      <select class="fb-sel" id="zone-filter" onchange="applyFilters()">
+        <option value="">All Zones</option>
+        <option value="gujarat">Gujarat</option>
+        <option value="karnataka">Karnataka</option>
+        <option value="maharashtra">Maharashtra</option>
+        <option value="rajasthan">Rajasthan</option>
+        <option value="telangana">Telangana</option>
+      </select>
+      <input type="text" class="fb-search" id="search-input" placeholder="Search…" oninput="applyFilters()"/>
+      <button class="dl-btn" onclick="downloadCSV()">⬇ Download CSV</button>
+    </div>
+    <div id="review-list"><div class="loader"><span class="spinner"></span>Loading…</div></div>
+  </div>
+
+  <!-- PUBLISH PANEL -->
+  <div class="panel" id="panel-publish">
+    <div class="pub-grid">
+      <div>
+        <div class="panel-card">
+          <div class="pc-title">📊 Section Fill Levels</div>
+          <div id="cap-bars"><div class="loader"><span class="spinner"></span></div></div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="panel-card">
+            <div class="pc-title">⚡ Approved — Ready to Publish</div>
+            <div id="ready-queue"><div class="loader"><span class="spinner"></span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-card">
+        <div class="pc-title">📋 Recently Published</div>
+        <div id="recent-pub"><div class="loader"><span class="spinner"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE CONTENT PANEL -->
+  <div class="panel" id="panel-published">
+    <div class="filter-bar">
+      <select class="fb-sel" id="pub-zone-f" onchange="loadPublished()">
+        <option value="">All Zones</option>
+        <option value="gujarat">Gujarat</option>
+        <option value="karnataka">Karnataka</option>
+        <option value="maharashtra">Maharashtra</option>
+        <option value="rajasthan">Rajasthan</option>
+        <option value="telangana">Telangana</option>
+      </select>
+      <select class="fb-sel" id="pub-sec-f" onchange="loadPublished()">
+        <option value="">All Sections</option>
+        <option value="top-highlight">Top Highlight</option>
+        <option value="whats-new">What's New</option>
+        <option value="achievements">Achievements</option>
+        <option value="ideas">Ideas</option>
+        <option value="spotlight">Spotlight</option>
+        <option value="on-ground">On-Ground</option>
+        <option value="quick-bytes">Quick Bytes</option>
+        <option value="zone-news">Zone News</option>
+      </select>
+    </div>
+    <div id="pub-list"><div class="loader"><span class="spinner"></span></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="supabase.js"></script>
+<script>
+const SECTIONS=[
+  {slug:'top-highlight',name:'Top Highlight',max:1},
+  {slug:'whats-new',name:"What's New",max:3},
+  {slug:'achievements',name:'Achievements',max:4},
+  {slug:'ideas',name:'Ideas',max:4},
+  {slug:'spotlight',name:'Spotlight',max:2},
+  {slug:'on-ground',name:'On-Ground',max:4},
+  {slug:'quick-bytes',name:'Quick Bytes',max:5},
+  {slug:'zone-news',name:'Zone News',max:6},
+];
+const SEC_NAMES=Object.fromEntries(SECTIONS.map(s=>[s.slug,s.name]));
+const CAT_LABELS={thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
+const ZONE_NAMES={all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
+
+let allSubs=[], currentFilter='all';
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ago(dt){const d=Math.floor((Date.now()-new Date(dt))/864e5);return d<=0?'Today':d===1?'Yesterday':d+'d ago';}
+function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'??';}
+
+function toast(msg,dur=2500){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+async function doLogin(){
+  const pw=document.getElementById('pw-input').value;
+  try{
+    await SG.adminLogin(pw);
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-shell').style.display='block';
+    await loadSubs();
+    await loadPublished();
+  }catch(e){
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+async function loadSubs(){
+  try{
+    allSubs=await SG.getAllSubmissions();
+    updateStats();
+    applyFilters();
+    renderCapBars();
+    renderReadyQueue();
+    renderRecentPub();
+  }catch(e){
+    document.getElementById('review-list').innerHTML='<div class="empty">Could not load submissions. Check Supabase connection.</div>';
+  }
+}
+
+function updateStats(){
+  const cnt=s=>allSubs.filter(x=>x.status===s).length;
+  document.getElementById('st-total').textContent=allSubs.length;
+  document.getElementById('st-pend').textContent=cnt('pending');
+  document.getElementById('st-app').textContent=cnt('approved');
+  document.getElementById('st-pub').textContent=cnt('published');
+  document.getElementById('st-rej').textContent=cnt('rejected');
+}
+
+function filterSubs(status,btn){
+  currentFilter=status;
+  document.querySelectorAll('#panel-review .fb-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters(){
+  const zone=document.getElementById('zone-filter').value;
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  let list=allSubs;
+  if(currentFilter!=='all')list=list.filter(s=>s.status===currentFilter);
+  if(zone)list=list.filter(s=>s.zone_slug===zone);
+  if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
+  renderReview(list);
+}
+
+const statusMap={
+  pending:{cls:'rs-pend',lbl:'Pending'},
+  approved:{cls:'rs-app',lbl:'Approved'},
+  rejected:{cls:'rs-rej',lbl:'Rejected'},
+  published:{cls:'rs-pub',lbl:'Published'}
+};
+
+function renderReview(list){
+  if(!list){list=allSubs;}
+  if(!list.length){document.getElementById('review-list').innerHTML='<div class="empty">No submissions found.</div>';return;}
+  let html='';
+  list.forEach(s=>{
+    const sm=statusMap[s.status]||statusMap.pending;
+    const canApp=s.status==='pending';
+    const canPub=s.status==='approved';
+    const canRej=s.status==='pending'||s.status==='approved';
+    const prio=s.priority||3;
+    const dots=[1,2,3].map(i=>`<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${s.id}',${i})"></div>`).join('');
+    const secOpts=SECTIONS.map(sec=>`<option value="${sec.slug}"${s.section_slug===sec.slug?' selected':''}>${sec.name}</option>`).join('');
+    html+=`<div class="rev-card" id="rc-${s.id}">
+      <div class="rc-top">
+        <div class="rc-av">${initials(s.emp_name)}</div>
+        <div class="rc-info">
+          <div class="rc-name">${esc(s.emp_name)} <span style="font-weight:400;color:var(--mu);font-size:12px;">${esc(s.emp_id)}</span></div>
+          <div class="rc-meta">${ZONE_NAMES[s.zone_slug]||s.zone_slug} · ${ago(s.created_at)} · ${CAT_LABELS[s.category]||s.category}${s.extra_data&&s.extra_data.branch?' · '+esc(s.extra_data.branch):''}</div>
+        </div>
+        <span class="rc-status ${sm.cls}">${sm.lbl}</span>
+      </div>
+      <div class="rc-content"><div class="rc-title">${esc(s.title)}</div>${esc(s.content)}</div>
+      <div class="rc-actions">
+        ${canApp?`<button class="act act-app" id="app-${s.id}" onclick="approve('${s.id}')">✓ Approve</button>`:''}
+        ${canRej?`<button class="act act-rej-btn" id="rej-${s.id}" onclick="showRej('${s.id}')">✗ Reject</button>`:''}
+        ${canPub?`
+          <select class="rc-sel" id="sec-${s.id}"><option value="">Set section…</option>${secOpts}</select>
+          <div class="pdots" title="Priority 1=High 3=Low">${dots}</div>
+          <button class="act act-pub" id="pub-${s.id}" onclick="publish('${s.id}')">🚀 Publish</button>
+        `:''}
+        ${s.status==='published'?`<span style="font-size:12px;color:var(--gr-d);">📰 ${SEC_NAMES[s.section_slug]||s.section_slug||'—'}</span>`:''}
+      </div>
+      <div class="rej-box" id="rej-box-${s.id}">
+        <textarea id="rej-note-${s.id}" rows="2" placeholder="Optional: reason for rejection (shown to submitter)"></textarea>
+        <button class="rej-confirm" onclick="confirmRej('${s.id}')">Confirm Rejection</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('review-list').innerHTML=html;
+}
+
+async function approve(id){
+  const btn=document.getElementById('app-'+id);
+  if(btn)btn.disabled=true;
+  try{
+    await SG.updateSubmission(id,{status:'approved'});
+    const s=allSubs.find(x=>x.id===id);
+    if(s)s.status='approved';
+    updateStats();applyFilters();renderCapBars();renderReadyQueue();
+    toast('✅ Approved');
+  }catch(e){
+    console.error(e);
+    toast('❌ Error: '+JSON.stringify(e));
+    if(btn)btn.disabled=false;
+  }
+}
+
+function showRej(id){
+  document.querySelectorAll('.rej-box').forEach(el=>el.style.display='none');
+  const box=document.getElementById('rej-box-'+id);
+  if(box)box.style.display='block';
+}
+
+async function confirmRej(id){
+  const note=(document.getElementById('rej-note-'+id)?.value||'').trim();
+  try{
+    await SG.updateSubmission(id,{status:'rejected',admin_note:note||null});
+    const s=allSubs.find(x=>x.id===id);
+    if(s){s.status='rejected';s.admin_note=note;}
+    updateStats();applyFilters();renderCapBars();
+    toast('Rejected');
+  }catch(e){
+    console.error(e);
+    toast('❌ Error: '+JSON.stringify(e));
+  }
+}
+
+function setPrio(id,val){
+  const s=allSubs.find(x=>x.id===id);
+  if(s)s.priority=val;
+  const card=document.getElementById('rc-'+id);
+  if(card)card.querySelectorAll('.pdot').forEach((d,i)=>{
+    d.classList.toggle('on',i<val);
+  });
+}
+
+async function publish(id){
+  const secEl=document.getElementById('sec-'+id);
+  if(!secEl?.value){toast('⚠️ Please select a section first.');return;}
+  const s=allSubs.find(x=>x.id===id);
+  if(!s)return;
+  const btn=document.getElementById('pub-'+id);
+  if(btn)btn.disabled=true;
+  try{
+    await SG.publishSubmission(s,secEl.value,s.priority||3);
+    s.status='published';s.section_slug=secEl.value;
+    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
+    toast('🚀 Published to '+SEC_NAMES[secEl.value]);
+  }catch(e){
+    console.error(e);
+    toast('❌ Publish failed: '+JSON.stringify(e));
+    if(btn)btn.disabled=false;
+  }
+}
+
+async function publishFromQueue(id){
+  const secEl=document.getElementById('qsec-'+id);
+  if(!secEl?.value){toast('⚠️ Select a section.');return;}
+  const s=allSubs.find(x=>x.id===id);
+  if(!s)return;
+  try{
+    await SG.publishSubmission(s,secEl.value,s.priority||3);
+    s.status='published';s.section_slug=secEl.value;
+    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
+    toast('🚀 Published!');
+  }catch(e){
+    toast('❌ Failed: '+JSON.stringify(e));
+  }
+}
+
+function renderCapBars(){
+  const pub=allSubs.filter(s=>s.status==='published');
+  let html='';
+  SECTIONS.forEach(sec=>{
+    const count=pub.filter(s=>s.section_slug===sec.slug).length;
+    const pct=Math.min(100,Math.round((count/sec.max)*100));
+    const cls=pct>=100?'cap-full':pct>=50?'cap-mid':'cap-empty';
+    html+=`<div class="cap-row"><div class="cap-name">${sec.name}</div><div class="cap-bar-wrap"><div class="cap-bar ${cls}" style="width:${pct}%"></div></div><div class="cap-count">${count}/${sec.max}</div></div>`;
+  });
+  document.getElementById('cap-bars').innerHTML=html||'<div class="empty" style="padding:8px;">No published items yet.</div>';
+}
+
+function renderReadyQueue(){
+  const approved=allSubs.filter(s=>s.status==='approved');
+  if(!approved.length){document.getElementById('ready-queue').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">No approved items waiting.</div>';return;}
+  let html=approved.map(s=>`
+    <div class="pq-item">
+      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${CAT_LABELS[s.category]}</div></div>
+      <select class="rc-sel" id="qsec-${s.id}" style="font-size:11px;"><option value="">Section…</option>${SECTIONS.map(sec=>`<option value="${sec.slug}">${sec.name}</option>`).join('')}</select>
+      <button class="act act-pub" style="font-size:11px;padding:4px 10px;" onclick="publishFromQueue('${s.id}')">Pub</button>
+    </div>`).join('');
+  document.getElementById('ready-queue').innerHTML=html;
+}
+
+function renderRecentPub(){
+  const pub=allSubs.filter(s=>s.status==='published').slice(0,8);
+  if(!pub.length){document.getElementById('recent-pub').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">Nothing published yet.</div>';return;}
+  let html=pub.map(p=>`<div class="pq-item"><div><div class="pq-title">${esc(p.title)}</div><div class="pq-meta">${esc(p.emp_name)}</div></div><span class="pq-sec">${SEC_NAMES[p.section_slug]||'—'}</span></div>`).join('');
+  document.getElementById('recent-pub').innerHTML=html;
+}
+
+async function loadPublished(){
+  const zone=document.getElementById('pub-zone-f')?.value||'';
+  const section=document.getElementById('pub-sec-f')?.value||'';
+  try{
+    let items=await SG.getPublished();if(zone)items=items.filter(p=>p.zone_slug===zone);
+    if(section)items=items.filter(p=>p.section_slug===section);
+    if(!items.length){document.getElementById('pub-list').innerHTML='<div class="empty">No published content for this filter.</div>';return;}
+    let html=items.map(p=>`
+      <div class="pub-item" id="pi-${p.id}">
+        <div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${initials(p.emp_name)}</div>
+        <div class="pi-body">
+          <div class="pi-title">${esc(p.title)}</div>
+          <div class="pi-meta"><span class="pi-sec">${SEC_NAMES[p.section_slug]||p.section_slug}</span><span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span> <span style="font-size:11px;color:var(--mu);">P${p.priority||3} · ${esc(p.emp_name)} · ${ago(p.published_at)}</span></div>
+          <div style="font-size:12px;color:var(--mu);">${esc((p.content||'').slice(0,120))}…</div>
+        </div>
+        <button class="act act-unpub" onclick="unpub('${p.id}')" style="flex-shrink:0;font-size:12px;padding:5px 10px;">Unpublish</button>
+      </div>`).join('');
+    document.getElementById('pub-list').innerHTML=html;
+  }catch(e){
+    document.getElementById('pub-list').innerHTML='<div class="empty">Could not load published content.</div>';
+  }
+}
+
+async function unpub(id){
+  if(!confirm('Remove this from the live magazine?'))return;
+  try{
+    await SG.unpublishContent(id);
+    document.getElementById('pi-'+id)?.remove();
+    toast('Removed from live magazine');
+  }catch(e){toast('❌ Failed');}
+}
+
+// ── CSV DOWNLOAD ─────────────────────────────────────────────
+function downloadCSV(){
+  const zone=document.getElementById('zone-filter').value;
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  let list=allSubs;
+  if(currentFilter!=='all')list=list.filter(s=>s.status===currentFilter);
+  if(zone)list=list.filter(s=>s.zone_slug===zone);
+  if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
+
+  if(!list.length){toast('No data to download.');return;}
+
+  const headers=['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted At','Admin Note'];
+  const rows=list.map(s=>[
+    s.emp_id||'',
+    s.emp_name||'',
+    ZONE_NAMES[s.zone_slug]||s.zone_slug||'',
+    (s.extra_data&&s.extra_data.branch)||s.branch||'',
+    CAT_LABELS[s.category]||s.category||'',
+    s.title||'',
+    (s.content||'').replace(/"/g,'""'),
+    s.status||'',
+    SEC_NAMES[s.section_slug]||s.section_slug||'',
+    s.priority||'',
+    s.created_at?new Date(s.created_at).toLocaleDateString('en-IN'):'',
+    s.admin_note||''
+  ]);
+
+  const csv=[headers,...rows].map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`sarvagram-submissions-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('✅ CSV downloaded');
+}
+
+function showPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.an-tab,.mt-tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(id==='publish'){renderReadyQueue();renderCapBars();renderRecentPub();}
+  if(id==='published')loadPublished();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  if(sessionStorage.getItem('sg_admin_token')){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-shell').style.display='block';
+    loadSubs();loadPublished();
+  }
+});
+</script>
+</body>
+</html>
