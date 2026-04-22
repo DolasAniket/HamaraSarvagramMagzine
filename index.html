@@ -256,6 +256,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty{text-align:center;padding:24px;color:var(--mu);font-size:12px;}
 
+/* Load More */
+.load-more-btn{display:block;width:100%;padding:9px;text-align:center;background:none;border:1px solid var(--bdr);border-radius:10px;font-size:13px;font-weight:600;color:var(--bl);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;transition:all .15s;}
+.load-more-btn:hover{background:var(--bl-l);}
+.load-more-btn:disabled{color:var(--mu);cursor:default;border-color:var(--bdr);}
+
 /* Bottom nav mobile */
 .bn{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);padding:6px 0 10px;z-index:300;}
 @media(max-width:720px){.bn{display:flex;}body{padding-bottom:64px;}}
@@ -366,7 +371,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
         <div class="field-row">
           <div class="field"><label>Zone <span class="req">*</span></label>
             <select id="f-zone">
-              <option value="">Select…</option>
+              <option value="">Select zone…</option>
               <option value="gujarat">Gujarat</option>
               <option value="karnataka">Karnataka</option>
               <option value="maharashtra">Maharashtra</option>
@@ -571,9 +576,15 @@ function mergeSection(demoItems, liveItems, zone){
   return merged.slice(0,limit);
 }
 
-// Pull live items by section slug
+// Pull live items by section — priority first, newest as tiebreaker
 function liveBySection(slug){
-  return allPublished.filter(p=>p.section_slug===slug && p.is_active!==false);
+  return allPublished
+    .filter(p=>p.section_slug===slug && p.is_active!==false)
+    .sort((a,b)=>{
+      const pd=(a.priority||3)-(b.priority||3); // lower priority number = higher rank
+      if(pd!==0) return pd;
+      return new Date(b.published_at)-new Date(a.published_at); // newest first as tiebreaker
+    });
 }
 
 // mergeSection3: uses base demo + extra demo + live data
@@ -706,10 +717,11 @@ function renderAll(){
   html='';
   html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0;" class="sec-twocol">`;
 
-  // Highlights list
+  // Highlights list — show 5 initially, load more up to 10
+  const hlAll = hl; // already up to 10 from mergeSection3
   html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--sf);"></div><div class="slabel-text">Top Highlights</div><div class="slabel-line"></div></div>`;
-  html+=`<div class="hl-list">`;
-  hl.forEach((item,i)=>{
+  html+=`<div class="hl-list" id="hl-list">`;
+  hlAll.slice(0,5).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="hl-item">
       <div class="hl-thumb ${GRADS[i%5]}">${EMO[item.category]||'📄'}</div>
@@ -720,12 +732,19 @@ function renderAll(){
       </div>
     </div>`;
   });
-  html+=`</div></div>`;
+  html+=`</div>`;
+  if(hlAll.length>5){
+    // Store remaining items as JSON for load-more
+    const remaining=hlAll.slice(5,10);
+    html+=`<button class="load-more-btn" id="hl-more" onclick="loadMoreHL(this)">Load more (${remaining.length} more)</button>`;
+    html+=`<script id="hl-data" type="application/json">${JSON.stringify(remaining).replace(/<\/script>/g,'<\\/script>')}<\/script>`;
+  }
+  html+=`</div>`;
 
-  // What's New cards
+  // What's New cards — show 5, load more inline
   html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--bl);"></div><div class="slabel-text">What's New</div><div class="slabel-line"></div></div>`;
-  html+=`<div class="wn-list">`;
-  news.forEach((item,i)=>{
+  html+=`<div class="wn-list" id="wn-list">`;
+  news.slice(0,5).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="wn-card">
       <div class="wn-img ${GRADS[(i+2)%5]}">${EMO[item.category]||'📄'}</div>
@@ -736,7 +755,11 @@ function renderAll(){
       </div>
     </div>`;
   });
-  html+=`</div></div></div>`;
+  html+=`</div>`;
+  if(news.length>5){
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'wn-list','wn')" data-items='${JSON.stringify(news.slice(5,10)).replace(/'/g,"&#39;")}' data-type="wn">Load more (${Math.min(news.length-5,5)} more)</button>`;
+  }
+  html+=`</div></div>`;
 
   // ── ON-GROUND SLIDER ─────────────────────────────────────
   html+=secLabel('On-Ground Moments','var(--bl)');
@@ -814,8 +837,8 @@ function renderAll(){
 
   // ── ACHIEVEMENTS ─────────────────────────────────────────
   html+=secLabel('Achievements · Q1 2026','var(--gr)');
-  html+=`<div class="${gridCls}">`;
-  ach.forEach(a=>{
+  html+=`<div class="${gridCls}" id="ach-list">`;
+  ach.slice(0,isAll?5:3).forEach(a=>{
     const zc=ZC[a.zone_slug]||'var(--gr-d)';
     const zbg=ZBG[a.zone_slug]||'var(--gr-l)';
     html+=`<div class="ach-card">
@@ -825,11 +848,15 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
+  const showAch=isAll?5:3;
+  if(ach.length>showAch){
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'ach-list','ach')" data-items='${JSON.stringify(ach.slice(showAch,showAch+5)).replace(/'/g,"&#39;")}' data-type="ach" data-gridcls="${gridCls}">Load more (${Math.min(ach.length-showAch,5)} more)</button>`;
+  }
 
   // ── IDEAS ─────────────────────────────────────────────────
   html+=secLabel('Ideas & Suggestions','var(--bl)');
-  html+=`<div class="${gridCls}">`;
-  ideas.forEach(idea=>{
+  html+=`<div class="${gridCls}" id="idea-list">`;
+  ideas.slice(0,isAll?5:3).forEach(idea=>{
     const v=votes[idea.id]||idea.votes||0;
     const zc=ZC[idea.zone_slug]||'var(--bl)';
     html+=`<div class="idea-card">
@@ -844,6 +871,10 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
+  const showIdea=isAll?5:3;
+  if(ideas.length>showIdea){
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'idea-list','idea')" data-items='${JSON.stringify(ideas.slice(showIdea,showIdea+5)).replace(/'/g,"&#39;")}' data-type="idea" data-gridcls="${gridCls}">Load more (${Math.min(ideas.length-showIdea,5)} more)</button>`;
+  }
 
   document.getElementById('main-body').innerHTML=html;
   initOG(ground.length);
@@ -933,6 +964,73 @@ async function doSubmit(){
 document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 function openMM(){document.getElementById('mm-drawer').classList.add('open');document.getElementById('mm-overlay').classList.add('show');}
 function closeMM(){document.getElementById('mm-drawer').classList.remove('open');document.getElementById('mm-overlay').classList.remove('show');}
+
+// ═══════════════════════════════════════════════════════════
+// LOAD MORE — inline expansion, no drawer
+// ═══════════════════════════════════════════════════════════
+function loadMoreHL(btn){
+  const data=JSON.parse(document.getElementById('hl-data')?.textContent||'[]');
+  const list=document.getElementById('hl-list');
+  if(!list||!data.length) return;
+  const offset=list.querySelectorAll('.hl-item').length;
+  data.forEach((item,i)=>{
+    const zc=ZC[item.zone_slug]||'#666';
+    const div=document.createElement('div');
+    div.className='hl-item';
+    div.innerHTML=`<div class="hl-thumb ${GRADS[(offset+i)%5]}">${EMO[item.category]||'📄'}</div>
+      <div>
+        <div class="hl-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+        <div class="hl-title">${esc(item.title)}</div>
+        <div class="hl-meta">${esc(item.emp_name)} · ${ago(item.published_at||new Date())}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+  btn.disabled=true; btn.textContent='All caught up ✓';
+}
+
+function loadMoreInline(btn, listId, type){
+  const raw=btn.getAttribute('data-items');
+  if(!raw) return;
+  const items=JSON.parse(raw.replace(/&#39;/g,"'"));
+  const list=document.getElementById(listId);
+  if(!list||!items.length) return;
+  const offset=list.children.length;
+
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');
+    if(type==='wn'){
+      const zc=ZC[item.zone_slug]||'#666';
+      div.className='wn-card';
+      div.innerHTML=`<div class="wn-img ${GRADS[(offset+i)%5]}">${EMO[item.category]||'📄'}</div>
+        <div class="wn-body">
+          <div class="wn-kicker" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+          <div class="wn-title">${esc(item.title)}</div>
+          <div class="wn-meta">${esc(item.emp_name)}${item.content?' · '+esc((item.content||'').slice(0,55))+'…':''}</div>
+        </div>`;
+    } else if(type==='ach'){
+      const zc=ZC[item.zone_slug]||'var(--gr-d)';
+      const zbg=ZBG[item.zone_slug]||'var(--gr-l)';
+      div.className='ach-card';
+      div.innerHTML=`<div class="ach-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[item.zone_slug]||''}</div>
+        <div class="ach-name">${esc(item.emp_name)}</div>
+        <div class="ach-text">${esc(item.content)}</div>`;
+    } else if(type==='idea'){
+      const v=votes[item.id]||item.votes||0;
+      const zc=ZC[item.zone_slug]||'var(--bl)';
+      div.className='idea-card';
+      div.innerHTML=`<div class="idea-kick" style="color:${zc};">💡 ${ZN[item.zone_slug]||''}</div>
+        <div class="idea-title">${esc(item.title)}</div>
+        <div class="idea-text">${esc(item.content)}</div>
+        <div class="idea-footer">
+          <button class="vbtn" onclick="doVote('${item.id||'x'+i}',${v},this)">👍 Useful</button>
+          <span class="vcnt">${v} votes</span>
+          <span class="idea-by">${esc(item.emp_name)}</span>
+        </div>`;
+    }
+    list.appendChild(div);
+  });
+  btn.disabled=true; btn.textContent='All caught up ✓';
+}
 
 // ═══════════════════════════════════════════════════════════
 // INIT — load from Supabase then render
