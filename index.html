@@ -588,24 +588,22 @@ function liveBySection(slug){
     });
 }
 
-// mergeSection3: uses base demo + extra demo + live data
-// All Zones → 5 items; Specific zone → 3 items
+// mergeSection3 — returns up to 10 items (all zones) or 6 items (specific zone)
+// Caller decides how many to show initially; extras go to load-more
 function mergeSection3(demoBase, demoExtra, liveItems, zone){
-  const limit = zone==='all' ? 5 : 3;
-  const live = liveItems||[];
+  const limit = zone==='all' ? 10 : 6; // fetch more, display fewer initially
 
   if(zone==='all'){
+    const live=liveItems||[];
     const coveredZones = new Set(live.map(l=>l.zone_slug));
     const demoFill = demoBase.filter(d=>!coveredZones.has(d.zone_slug));
-    return [...live,...demoFill].slice(0,5);
+    return [...live,...demoFill].slice(0,limit);
   }
 
-  // Zone-specific: collect live + base + extra for that zone, up to 3
-  const liveZone = live.filter(l=>l.zone_slug===zone);
+  const live = (liveItems||[]).filter(l=>l.zone_slug===zone);
   const baseZone = demoBase.filter(d=>(d.zone_slug===zone||d.zone===zone));
-  const extraZone= (demoExtra&&demoExtra[zone])||[];
-  const pool = [...liveZone,...baseZone,...extraZone];
-  // deduplicate by title
+  const extraZone = (demoExtra&&demoExtra[zone])||[];
+  const pool = [...live,...baseZone,...extraZone];
   const seen=new Set(); const merged=[];
   for(const item of pool){
     const key=item.title||item.id;
@@ -691,9 +689,8 @@ function setZone(zone, el){
 function renderAll(){
   const z=currentZone;
   const isAll=z==='all';
-  const limit=isAll?5:3;
-
-  // Merge live + demo for each section (with extra zone-specific items)
+  const showCount = isAll ? 5 : 3;  // how many to display initially
+  const gridCls = isAll ? 'g5' : 'g3';
   const hl    =mergeSection3(DEMO.highlights,  DEMO_EXTRA.highlights,  liveBySection('top-highlight'), z);
   const news  =mergeSection3(DEMO.news,         DEMO_EXTRA.news,        liveBySection('whats-new'),     z);
   const ground=mergeSection3(DEMO.ground,       DEMO_EXTRA.ground,      liveBySection('on-ground'),     z);
@@ -722,7 +719,7 @@ function renderAll(){
   const hlAll = hl; // already up to 10 from mergeSection3
   html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--sf);"></div><div class="slabel-text">Top Highlights</div><div class="slabel-line"></div></div>`;
   html+=`<div class="hl-list" id="hl-list">`;
-  hlAll.slice(0,5).forEach((item,i)=>{
+  hlAll.slice(0,showCount).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="hl-item">
       <div class="hl-thumb ${GRADS[i%5]}">${EMO[item.category]||'📄'}</div>
@@ -734,18 +731,17 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(hlAll.length>5){
-    // Store remaining items as JSON for load-more
-    const remaining=hlAll.slice(5,10);
+  if(hlAll.length>showCount){
+    const remaining=hlAll.slice(showCount);
     html+=`<button class="load-more-btn" id="hl-more" onclick="loadMoreHL(this)">Load more (${remaining.length} more)</button>`;
     html+=`<script id="hl-data" type="application/json">${JSON.stringify(remaining).replace(/<\/script>/g,'<\\/script>')}<\/script>`;
   }
   html+=`</div>`;
 
-  // What's New cards — show 5, load more inline
+  // What's New cards
   html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--bl);"></div><div class="slabel-text">What's New</div><div class="slabel-line"></div></div>`;
   html+=`<div class="wn-list" id="wn-list">`;
-  news.slice(0,5).forEach((item,i)=>{
+  news.slice(0,showCount).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="wn-card">
       <div class="wn-img ${GRADS[(i+2)%5]}">${EMO[item.category]||'📄'}</div>
@@ -757,8 +753,9 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(news.length>5){
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'wn-list','wn')" data-items='${JSON.stringify(news.slice(5,10)).replace(/'/g,"&#39;")}' data-type="wn">Load more (${Math.min(news.length-5,5)} more)</button>`;
+  if(news.length>showCount){
+    const wnRem=news.slice(showCount);
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'wn-list','wn')" data-items='${JSON.stringify(wnRem).replace(/'/g,"&#39;")}' data-type="wn">Load more (${wnRem.length} more)</button>`;
   }
   html+=`</div></div>`;
 
@@ -839,7 +836,7 @@ function renderAll(){
   // ── ACHIEVEMENTS ─────────────────────────────────────────
   html+=secLabel('Achievements · Q1 2026','var(--gr)');
   html+=`<div class="${gridCls}" id="ach-list">`;
-  ach.slice(0,isAll?5:3).forEach(a=>{
+  ach.slice(0,showCount).forEach(a=>{
     const zc=ZC[a.zone_slug]||'var(--gr-d)';
     const zbg=ZBG[a.zone_slug]||'var(--gr-l)';
     html+=`<div class="ach-card">
@@ -849,15 +846,15 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  const showAch=isAll?5:3;
-  if(ach.length>showAch){
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'ach-list','ach')" data-items='${JSON.stringify(ach.slice(showAch,showAch+5)).replace(/'/g,"&#39;")}' data-type="ach" data-gridcls="${gridCls}">Load more (${Math.min(ach.length-showAch,5)} more)</button>`;
+  if(ach.length>showCount){
+    const achRem=ach.slice(showCount);
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'ach-list','ach')" data-items='${JSON.stringify(achRem).replace(/'/g,"&#39;")}' data-type="ach" data-gridcls="${gridCls}">Load more (${achRem.length} more)</button>`;
   }
 
   // ── IDEAS ─────────────────────────────────────────────────
   html+=secLabel('Ideas & Suggestions','var(--bl)');
   html+=`<div class="${gridCls}" id="idea-list">`;
-  ideas.slice(0,isAll?5:3).forEach(idea=>{
+  ideas.slice(0,showCount).forEach(idea=>{
     const v=votes[idea.id]||idea.votes||0;
     const zc=ZC[idea.zone_slug]||'var(--bl)';
     html+=`<div class="idea-card">
@@ -872,9 +869,9 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  const showIdea=isAll?5:3;
-  if(ideas.length>showIdea){
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'idea-list','idea')" data-items='${JSON.stringify(ideas.slice(showIdea,showIdea+5)).replace(/'/g,"&#39;")}' data-type="idea" data-gridcls="${gridCls}">Load more (${Math.min(ideas.length-showIdea,5)} more)</button>`;
+  if(ideas.length>showCount){
+    const ideaRem=ideas.slice(showCount);
+    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'idea-list','idea')" data-items='${JSON.stringify(ideaRem).replace(/'/g,"&#39;")}' data-type="idea" data-gridcls="${gridCls}">Load more (${ideaRem.length} more)</button>`;
   }
 
   document.getElementById('main-body').innerHTML=html;

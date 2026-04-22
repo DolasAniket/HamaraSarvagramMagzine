@@ -196,7 +196,10 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
       <button class="an-tab" onclick="showPanel('publish',this)">🚀 Publish Control</button>
       <button class="an-tab" onclick="showPanel('published',this)">📰 Live Content</button>
     </div>
-    <button class="logout-btn" onclick="SG.adminLogout()">Sign Out</button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="index.html" style="color:rgba(255,255,255,.75);font-size:13px;text-decoration:none;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;transition:all .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.75)'">← Magazine</a>
+      <button class="logout-btn" onclick="SG.adminLogout()">Sign Out</button>
+    </div>
   </nav>
   <div class="mobile-tabs">
     <button class="mt-tab active" onclick="showPanel('review',this)">📋 Review</button>
