@@ -256,10 +256,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty{text-align:center;padding:24px;color:var(--mu);font-size:12px;}
 
-/* Load More */
-.load-more-btn{display:block;width:100%;padding:9px;text-align:center;background:none;border:1px solid var(--bdr);border-radius:10px;font-size:13px;font-weight:600;color:var(--bl);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;transition:all .15s;}
-.load-more-btn:hover{background:var(--bl-l);}
-.load-more-btn:disabled{color:var(--mu);cursor:default;border-color:var(--bdr);}
+/* See All Button */
+.see-all-btn{display:block;width:100%;padding:9px;text-align:center;background:none;border:1.5px solid var(--bl);border-radius:10px;font-size:13px;font-weight:600;color:var(--bl);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;transition:all .15s;}
+.see-all-btn:hover{background:var(--bl);color:#fff;}
+
+/* See All Modal */
+.sa-overlay{display:none;position:fixed;inset:0;background:rgba(15,17,23,.55);z-index:900;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px);}
+.sa-overlay.show{display:flex;animation:fadeIn .2s ease;}
+.sa-modal{background:#fff;border-radius:18px;width:100%;max-width:620px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.2);animation:slideUp .22s ease;}
+.sa-head{padding:18px 20px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.sa-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--bl);}
+.sa-count{font-size:11px;color:var(--mu);margin-left:8px;}
+.sa-x{background:none;border:none;font-size:22px;cursor:pointer;color:var(--mu);line-height:1;padding:0;}
+.sa-x:hover{color:var(--ink);}
+.sa-body{overflow-y:auto;padding:16px 20px;}
+.sa-item{display:flex;gap:12px;padding:12px 0;border-bottom:.5px solid var(--bdr);}
+.sa-item:last-child{border-bottom:none;}
+.sa-thumb{width:52px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.sa-tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.sa-title-item{font-size:13px;font-weight:600;line-height:1.35;margin-bottom:2px;}
+.sa-meta{font-size:11px;color:var(--mu);}
+/* What's New in modal */
+.sa-wn{display:flex;gap:10px;padding:10px 0;border-bottom:.5px solid var(--bdr);}
+.sa-wn:last-child{border-bottom:none;}
+.sa-wn-img{width:70px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+/* Ach/idea in modal */
+.sa-ach{padding:10px 0;border-bottom:.5px solid var(--bdr);}
+.sa-ach:last-child{border-bottom:none;}
+.sa-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:7px;display:inline-block;margin-bottom:3px;}
 
 /* Bottom nav mobile */
 .bn{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);padding:6px 0 10px;z-index:300;}
@@ -330,14 +354,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
       <div style="font-size:11px;margin-top:3px;color:rgba(255,255,255,.3);">SarvaGram Fincare Pvt Ltd · Internal Magazine · APR 2026</div>
     </div>
     <div class="footer-links">
-      <a class="footer-link" href="index.html">Magazine</a>
-      <a class="footer-link" href="submit.html">Submit</a>
-      <a class="footer-link" href="mysubs.html">My Submissions</a>
       <a class="footer-admin" href="admin.html">🔒 Admin Panel</a>
     </div>
     <div class="footer-copy">© 2026 SarvaGram. All rights reserved.</div>
   </div>
 </footer>
+
+<!-- SCROLL TO TOP -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" style="position:fixed;bottom:80px;right:20px;width:40px;height:40px;border-radius:50%;background:var(--bl);color:#fff;border:none;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(43,57,142,.35);z-index:600;transition:all .2s;">↑</button>
+<script>
+window.addEventListener('scroll',()=>{
+  const btn=document.getElementById('scroll-top');
+  if(btn) btn.style.display=window.scrollY>300?'flex':'none';
+});
+</script>
 
 <!-- BOTTOM NAV (mobile) -->
 <nav class="bn">
@@ -345,6 +375,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
   <button class="bn-item" onclick="openModal()"><div class="bn-icon">✏️</div>Submit</button>
   <button class="bn-item" onclick="location.href='mysubs.html'"><div class="bn-icon">📋</div>Mine</button>
 </nav>
+
+<!-- SEE ALL MODAL -->
+<div class="sa-overlay" id="sa-overlay" onclick="if(event.target===this)closeSA()">
+  <div class="sa-modal">
+    <div class="sa-head">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div class="sa-title" id="sa-title">All Posts</div>
+        <span class="sa-count" id="sa-count"></span>
+      </div>
+      <button class="sa-x" onclick="closeSA()">✕</button>
+    </div>
+    <div class="sa-body" id="sa-body"></div>
+  </div>
+</div>
 
 <!-- SUBMIT MODAL -->
 <div class="modal-overlay" id="modal-overlay">
@@ -708,35 +752,34 @@ function renderAll(){
   const topEmps = isAll ? null : (DEMO.topEmployees[z]||[]);
 
   let html='';
-  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0;" class="sec-twocol">`;
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="sec-twocol">`;
 
-  // Highlights list — show 5 initially, load more up to 10
-  const hlAll = hl; // already up to 10 from mergeSection3
-  html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--sf);"></div><div class="slabel-text">Top Highlights</div><div class="slabel-line"></div></div>`;
-  html+=`<div class="hl-list" id="hl-list">`;
+  // ── TOP HIGHLIGHTS — 5 shown, See All opens modal with up to 10
+  const hlAll = hl;
+  html+=`<div>
+    <div class="slabel"><div class="slabel-dot" style="background:var(--sf);"></div><div class="slabel-text">Top Highlights</div><div class="slabel-line"></div></div>
+    <div class="hl-list">`;
   hlAll.slice(0,showCount).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="hl-item">
       <div class="hl-thumb ${GRADS[i%5]}">${EMO[item.category]||'📄'}</div>
       <div>
-        <div class="hl-tag" style="color:${zc};">${ZN[item.zone_slug]||item.zone_slug||''}</div>
+        <div class="hl-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
         <div class="hl-title">${esc(item.title)}</div>
         <div class="hl-meta">${esc(item.emp_name)} · ${ago(item.published_at||new Date())}</div>
       </div>
     </div>`;
   });
   html+=`</div>`;
-  if(hlAll.length>showCount){
-    const remaining=hlAll.slice(showCount);
-    html+=`<button class="load-more-btn" id="hl-more" onclick="loadMoreHL(this)">Load more (${remaining.length} more)</button>`;
-    html+=`<script id="hl-data" type="application/json">${JSON.stringify(remaining).replace(/<\/script>/g,'<\\/script>')}<\/script>`;
-  }
+  if(hlAll.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Top Highlights",${JSON.stringify(hlAll.slice(0,10))},"hl")'>See all ${hlAll.length} →</button>`;
   html+=`</div>`;
 
-  // What's New cards
-  html+=`<div><div class="slabel"><div class="slabel-dot" style="background:var(--bl);"></div><div class="slabel-text">What's New</div><div class="slabel-line"></div></div>`;
-  html+=`<div class="wn-list" id="wn-list">`;
-  news.slice(0,showCount).forEach((item,i)=>{
+  // ── WHAT'S NEW — 5 shown, See All opens modal with up to 10
+  const newsAll = news;
+  html+=`<div>
+    <div class="slabel"><div class="slabel-dot" style="background:var(--bl);"></div><div class="slabel-text">What's New</div><div class="slabel-line"></div></div>
+    <div class="wn-list">`;
+  newsAll.slice(0,showCount).forEach((item,i)=>{
     const zc=ZC[item.zone_slug]||'#666';
     html+=`<div class="wn-card">
       <div class="wn-img ${GRADS[(i+2)%5]}">${EMO[item.category]||'📄'}</div>
@@ -748,11 +791,9 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(news.length>showCount){
-    const wnRem=news.slice(showCount);
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'wn-list','wn')" data-items='${JSON.stringify(wnRem).replace(/'/g,"&#39;")}' data-type="wn">Load more (${wnRem.length} more)</button>`;
-  }
-  html+=`</div></div>`;
+  if(newsAll.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("What\\'s New",${JSON.stringify(newsAll.slice(0,10))},"wn")'>See all ${newsAll.length} →</button>`;
+  html+=`</div>`;
+  html+=`</div>`; // close sec-twocol
 
   // ── ON-GROUND SLIDER ─────────────────────────────────────
   html+=secLabel('On-Ground Moments','var(--bl)');
@@ -828,9 +869,9 @@ function renderAll(){
     html+=`</div>`;
   }
 
-  // ── ACHIEVEMENTS ─────────────────────────────────────────
+  // ── ACHIEVEMENTS — 5 shown, See All opens modal
   html+=secLabel('Achievements · Q1 2026','var(--gr)');
-  html+=`<div class="${gridCls}" id="ach-list">`;
+  html+=`<div class="${gridCls}">`;
   ach.slice(0,showCount).forEach(a=>{
     const zc=ZC[a.zone_slug]||'var(--gr-d)';
     const zbg=ZBG[a.zone_slug]||'var(--gr-l)';
@@ -841,14 +882,11 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(ach.length>showCount){
-    const achRem=ach.slice(showCount);
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'ach-list','ach')" data-items='${JSON.stringify(achRem).replace(/'/g,"&#39;")}' data-type="ach" data-gridcls="${gridCls}">Load more (${achRem.length} more)</button>`;
-  }
+  if(ach.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Achievements",${JSON.stringify(ach.slice(0,10))},"ach")'>See all ${ach.length} achievements →</button>`;
 
-  // ── IDEAS ─────────────────────────────────────────────────
+  // ── IDEAS — 5 shown, See All opens modal
   html+=secLabel('Ideas & Suggestions','var(--bl)');
-  html+=`<div class="${gridCls}" id="idea-list">`;
+  html+=`<div class="${gridCls}">`;
   ideas.slice(0,showCount).forEach(idea=>{
     const v=votes[idea.id]||idea.votes||0;
     const zc=ZC[idea.zone_slug]||'var(--bl)';
@@ -864,10 +902,7 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(ideas.length>showCount){
-    const ideaRem=ideas.slice(showCount);
-    html+=`<button class="load-more-btn" onclick="loadMoreInline(this,'idea-list','idea')" data-items='${JSON.stringify(ideaRem).replace(/'/g,"&#39;")}' data-type="idea" data-gridcls="${gridCls}">Load more (${ideaRem.length} more)</button>`;
-  }
+  if(ideas.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Ideas & Suggestions",${JSON.stringify(ideas.slice(0,10))},"idea")'>See all ${ideas.length} ideas →</button>`;
 
   document.getElementById('main-body').innerHTML=html;
   initOG(ground.length);
@@ -958,70 +993,57 @@ function openMM(){document.getElementById('mm-drawer').classList.add('open');doc
 function closeMM(){document.getElementById('mm-drawer').classList.remove('open');document.getElementById('mm-overlay').classList.remove('show');}
 
 // ═══════════════════════════════════════════════════════════
-// LOAD MORE — inline expansion, no drawer
+// SEE ALL MODAL — opens with up to 10 items
 // ═══════════════════════════════════════════════════════════
-function loadMoreHL(btn){
-  const data=JSON.parse(document.getElementById('hl-data')?.textContent||'[]');
-  const list=document.getElementById('hl-list');
-  if(!list||!data.length) return;
-  const offset=list.querySelectorAll('.hl-item').length;
-  data.forEach((item,i)=>{
-    const zc=ZC[item.zone_slug]||'#666';
-    const div=document.createElement('div');
-    div.className='hl-item';
-    div.innerHTML=`<div class="hl-thumb ${GRADS[(offset+i)%5]}">${EMO[item.category]||'📄'}</div>
-      <div>
-        <div class="hl-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
-        <div class="hl-title">${esc(item.title)}</div>
-        <div class="hl-meta">${esc(item.emp_name)} · ${ago(item.published_at||new Date())}</div>
-      </div>`;
-    list.appendChild(div);
-  });
-  btn.disabled=true; btn.textContent='All caught up ✓';
-}
-
-function loadMoreInline(btn, listId, type){
-  const raw=btn.getAttribute('data-items');
-  if(!raw) return;
-  const items=JSON.parse(raw.replace(/&#39;/g,"'"));
-  const list=document.getElementById(listId);
-  if(!list||!items.length) return;
-  const offset=list.children.length;
-
+function openSA(title, items, type){
+  document.getElementById('sa-title').textContent=title;
+  document.getElementById('sa-count').textContent=`(${items.length} posts)`;
+  let html='';
   items.forEach((item,i)=>{
-    const div=document.createElement('div');
-    if(type==='wn'){
+    if(type==='hl'){
       const zc=ZC[item.zone_slug]||'#666';
-      div.className='wn-card';
-      div.innerHTML=`<div class="wn-img ${GRADS[(offset+i)%5]}">${EMO[item.category]||'📄'}</div>
-        <div class="wn-body">
-          <div class="wn-kicker" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
-          <div class="wn-title">${esc(item.title)}</div>
-          <div class="wn-meta">${esc(item.emp_name)}${item.content?' · '+esc((item.content||'').slice(0,55))+'…':''}</div>
-        </div>`;
+      html+=`<div class="sa-item">
+        <div class="sa-thumb ${GRADS[i%5]}">${EMO[item.category]||'📄'}</div>
+        <div>
+          <div class="sa-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+          <div class="sa-title-item">${esc(item.title)}</div>
+          <div class="sa-meta">${esc(item.emp_name)} · ${ago(item.published_at||new Date())}</div>
+        </div>
+      </div>`;
+    } else if(type==='wn'){
+      const zc=ZC[item.zone_slug]||'#666';
+      html+=`<div class="sa-wn">
+        <div class="sa-wn-img ${GRADS[(i+2)%5]}">${EMO[item.category]||'📄'}</div>
+        <div>
+          <div class="sa-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+          <div class="sa-title-item">${esc(item.title)}</div>
+          <div class="sa-meta">${esc(item.emp_name)}${item.content?' · '+esc((item.content||'').slice(0,80))+'…':''}</div>
+        </div>
+      </div>`;
     } else if(type==='ach'){
       const zc=ZC[item.zone_slug]||'var(--gr-d)';
       const zbg=ZBG[item.zone_slug]||'var(--gr-l)';
-      div.className='ach-card';
-      div.innerHTML=`<div class="ach-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[item.zone_slug]||''}</div>
-        <div class="ach-name">${esc(item.emp_name)}</div>
-        <div class="ach-text">${esc(item.content)}</div>`;
+      html+=`<div class="sa-ach">
+        <div class="sa-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[item.zone_slug]||''}</div>
+        <div class="sa-title-item">${esc(item.emp_name)}</div>
+        <div class="sa-meta">${esc(item.content)}</div>
+      </div>`;
     } else if(type==='idea'){
-      const v=votes[item.id]||item.votes||0;
       const zc=ZC[item.zone_slug]||'var(--bl)';
-      div.className='idea-card';
-      div.innerHTML=`<div class="idea-kick" style="color:${zc};">💡 ${ZN[item.zone_slug]||''}</div>
-        <div class="idea-title">${esc(item.title)}</div>
-        <div class="idea-text">${esc(item.content)}</div>
-        <div class="idea-footer">
-          <button class="vbtn" onclick="doVote('${item.id||'x'+i}',${v},this)">👍 Useful</button>
-          <span class="vcnt">${v} votes</span>
-          <span class="idea-by">${esc(item.emp_name)}</span>
-        </div>`;
+      html+=`<div class="sa-ach">
+        <div class="sa-pill" style="background:var(--bl-l);color:${zc};">💡 ${ZN[item.zone_slug]||''}</div>
+        <div class="sa-title-item">${esc(item.title)}</div>
+        <div class="sa-meta">${esc(item.content)} — <em>${esc(item.emp_name)}</em></div>
+      </div>`;
     }
-    list.appendChild(div);
   });
-  btn.disabled=true; btn.textContent='All caught up ✓';
+  document.getElementById('sa-body').innerHTML=html||'<div class="empty">No more items.</div>';
+  document.getElementById('sa-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeSA(){
+  document.getElementById('sa-overlay').classList.remove('show');
+  document.body.style.overflow='';
 }
 
 // ═══════════════════════════════════════════════════════════
