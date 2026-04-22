@@ -256,9 +256,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty{text-align:center;padding:24px;color:var(--mu);font-size:12px;}
 
-/* See All Button */
-.see-all-btn{display:block;width:100%;padding:9px;text-align:center;background:none;border:1.5px solid var(--bl);border-radius:10px;font-size:13px;font-weight:600;color:var(--bl);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;transition:all .15s;}
-.see-all-btn:hover{background:var(--bl);color:#fff;}
+/* See More — small corner link */
+.see-more-link{display:block;text-align:right;font-size:12px;font-weight:600;color:var(--bl);cursor:pointer;margin-top:6px;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0;text-decoration:none;}
+.see-more-link:hover{color:var(--sf);}
+
+/* Horizontal slider (shared by On-Ground, Achievements, Ideas) */
+.hslider-wrap{overflow:hidden;}
+.hslider-track{display:flex;gap:14px;transition:transform .45s cubic-bezier(.4,0,.2,1);}
+.hslider-ctrl{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.hslider-dots{display:flex;gap:4px;}
+.hsdot{width:7px;height:7px;border-radius:50%;background:var(--bdr);border:none;cursor:pointer;padding:0;transition:all .2s;}
+.hsdot.active{background:var(--sf);width:18px;border-radius:3px;}
+.hslider-btns{display:flex;gap:6px;}
+.hs-btn{width:28px;height:28px;border-radius:50%;background:var(--card);border:1px solid var(--bdr);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .18s;box-shadow:var(--shadow);}
+.hs-btn:hover{background:var(--bl);color:#fff;border-color:var(--bl);}
+/* Ach slider card */
+.ach-slide{min-width:260px;flex-shrink:0;}
+@media(max-width:600px){.ach-slide{min-width:220px;}}
+/* Idea slider card */
+.idea-slide{min-width:260px;flex-shrink:0;}
+@media(max-width:600px){.idea-slide{min-width:220px;}}
 
 /* See All Modal */
 .sa-overlay{display:none;position:fixed;inset:0;background:rgba(15,17,23,.55);z-index:900;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px);}
@@ -771,7 +788,7 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(hlAll.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Top Highlights",${JSON.stringify(hlAll.slice(0,10))},"hl")'>See all ${hlAll.length} →</button>`;
+  if(hlAll.length>showCount) html+=`<button class="see-more-link" onclick='openSA("Top Highlights",${JSON.stringify(hlAll.slice(0,10))},"hl")'>See all ${hlAll.length} →</button>`;
   html+=`</div>`;
 
   // ── WHAT'S NEW — 5 shown, See All opens modal with up to 10
@@ -791,7 +808,7 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(newsAll.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("What\\'s New",${JSON.stringify(newsAll.slice(0,10))},"wn")'>See all ${newsAll.length} →</button>`;
+  if(newsAll.length>showCount) html+=`<button class="see-more-link" onclick='openSA("What\\'s New",${JSON.stringify(newsAll.slice(0,10))},"wn")'>See all ${newsAll.length} →</button>`;
   html+=`</div>`;
   html+=`</div>`; // close sec-twocol
 
@@ -869,43 +886,56 @@ function renderAll(){
     html+=`</div>`;
   }
 
-  // ── ACHIEVEMENTS — 5 shown, See All opens modal
-  html+=secLabel('Achievements · Q1 2026','var(--gr)');
-  html+=`<div class="${gridCls}">`;
-  ach.slice(0,showCount).forEach(a=>{
+  // ── ACHIEVEMENTS — horizontal slider
+  const achLabel = isAll ? 'Achievements · Q1 2026' : `Achievements · ${ZN[z]}`;
+  html+=`<div class="slabel"><div class="slabel-dot" style="background:var(--gr);"></div><div class="slabel-text">${achLabel}</div><div class="slabel-line"></div>${ach.length>showCount?`<button class="see-more-link" onclick='openSA("Achievements",${JSON.stringify(ach.slice(0,10))},"ach")'>See all ${ach.length} →</button>`:''}</div>`;
+  html+=`<div class="hslider-wrap"><div class="hslider-track" id="ach-track">`;
+  ach.forEach((a,i)=>{
     const zc=ZC[a.zone_slug]||'var(--gr-d)';
     const zbg=ZBG[a.zone_slug]||'var(--gr-l)';
-    html+=`<div class="ach-card">
-      <div class="ach-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[a.zone_slug]||''}</div>
-      <div class="ach-name">${esc(a.emp_name)}</div>
-      <div class="ach-text">${esc(a.content)}</div>
-    </div>`;
-  });
-  html+=`</div>`;
-  if(ach.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Achievements",${JSON.stringify(ach.slice(0,10))},"ach")'>See all ${ach.length} achievements →</button>`;
-
-  // ── IDEAS — 5 shown, See All opens modal
-  html+=secLabel('Ideas & Suggestions','var(--bl)');
-  html+=`<div class="${gridCls}">`;
-  ideas.slice(0,showCount).forEach(idea=>{
-    const v=votes[idea.id]||idea.votes||0;
-    const zc=ZC[idea.zone_slug]||'var(--bl)';
-    html+=`<div class="idea-card">
-      <div class="idea-kick" style="color:${zc};">💡 ${ZN[idea.zone_slug]||''}</div>
-      <div class="idea-title">${esc(idea.title)}</div>
-      <div class="idea-text">${esc(idea.content)}</div>
-      <div class="idea-footer">
-        <button class="vbtn" onclick="doVote('${idea.id}',${v},this)">👍 Useful</button>
-        <span class="vcnt" id="vc-${idea.id}">${v} votes</span>
-        <span class="idea-by">${esc(idea.emp_name)}</span>
+    html+=`<div class="ach-slide">
+      <div class="ach-card" style="height:100%;">
+        <div class="ach-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[a.zone_slug]||''}</div>
+        <div class="ach-name">${esc(a.emp_name)}</div>
+        <div class="ach-text">${esc(a.content)}</div>
       </div>
     </div>`;
   });
-  html+=`</div>`;
-  if(ideas.length>showCount) html+=`<button class="see-all-btn" onclick='openSA("Ideas & Suggestions",${JSON.stringify(ideas.slice(0,10))},"idea")'>See all ${ideas.length} ideas →</button>`;
+  html+=`</div></div>`;
+  html+=`<div class="hslider-ctrl">
+    <div class="hslider-dots" id="ach-dots">${ach.map((_,i)=>`<button class="hsdot${i===0?' active':''}" onclick="hsTo('ach',${i},${ach.length})"></button>`).join('')}</div>
+    <div class="hslider-btns"><button class="hs-btn" onclick="hsBy('ach',-1,${ach.length})">‹</button><button class="hs-btn" onclick="hsBy('ach',1,${ach.length})">›</button></div>
+  </div>`;
+
+  // ── IDEAS — horizontal slider
+  const ideasLabel = isAll ? 'Ideas & Suggestions' : `Ideas & Suggestions · ${ZN[z]}`;
+  html+=`<div class="slabel"><div class="slabel-dot" style="background:var(--bl);"></div><div class="slabel-text">${ideasLabel}</div><div class="slabel-line"></div>${ideas.length>showCount?`<button class="see-more-link" onclick='openSA("Ideas & Suggestions",${JSON.stringify(ideas.slice(0,10))},"idea")'>See all ${ideas.length} →</button>`:''}</div>`;
+  html+=`<div class="hslider-wrap"><div class="hslider-track" id="idea-track">`;
+  ideas.forEach((idea,i)=>{
+    const v=votes[idea.id]||idea.votes||0;
+    const zc=ZC[idea.zone_slug]||'var(--bl)';
+    html+=`<div class="idea-slide">
+      <div class="idea-card" style="height:100%;">
+        <div class="idea-kick" style="color:${zc};">💡 ${ZN[idea.zone_slug]||''}</div>
+        <div class="idea-title">${esc(idea.title)}</div>
+        <div class="idea-text">${esc(idea.content)}</div>
+        <div class="idea-footer">
+          <button class="vbtn" onclick="doVote('${idea.id}',${v},this)">👍 Useful</button>
+          <span class="vcnt" id="vc-${idea.id}">${v} votes</span>
+          <span class="idea-by">${esc(idea.emp_name)}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`</div></div>`;
+  html+=`<div class="hslider-ctrl">
+    <div class="hslider-dots" id="idea-dots">${ideas.map((_,i)=>`<button class="hsdot${i===0?' active':''}" onclick="hsTo('idea',${i},${ideas.length})"></button>`).join('')}</div>
+    <div class="hslider-btns"><button class="hs-btn" onclick="hsBy('idea',-1,${ideas.length})">‹</button><button class="hs-btn" onclick="hsBy('idea',1,${ideas.length})">›</button></div>
+  </div>`;
 
   document.getElementById('main-body').innerHTML=html;
   initOG(ground.length);
+  // ach and idea sliders share the same hs engine
 }
 
 function secLabel(text,color){
@@ -927,6 +957,24 @@ function ogTo(i){
   document.querySelectorAll('.ogdot').forEach((d,j)=>d.classList.toggle('active',j===ogIdx));
 }
 function ogBy(d){ogTo(ogIdx+d);}
+
+// ── SHARED HORIZONTAL SLIDER (ach, idea) ─────────────────────
+const hsState={};
+function hsTo(id,i,count){
+  if(!hsState[id]) hsState[id]=0;
+  hsState[id]=Math.max(0,Math.min(i,count-1));
+  const track=document.getElementById(id+'-track');
+  if(!track)return;
+  const slide=track.firstElementChild;
+  if(!slide)return;
+  const w=slide.offsetWidth+14;
+  track.style.transform=`translateX(-${hsState[id]*w}px)`;
+  document.querySelectorAll(`#${id}-dots .hsdot`).forEach((d,j)=>d.classList.toggle('active',j===hsState[id]));
+}
+function hsBy(id,dir,count){
+  const cur=hsState[id]||0;
+  hsTo(id,cur+dir,count);
+}
 
 // ── VOTE ─────────────────────────────────────────────────────
 function doVote(id,base,btn){
