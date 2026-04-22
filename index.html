@@ -689,8 +689,10 @@ function setZone(zone, el){
 function renderAll(){
   const z=currentZone;
   const isAll=z==='all';
-  const showCount = isAll ? 5 : 3;  // how many to display initially
+  const showCount = isAll ? 5 : 3;
+  const limit = showCount; // alias for legacy references
   const gridCls = isAll ? 'g5' : 'g3';
+
   const hl    =mergeSection3(DEMO.highlights,  DEMO_EXTRA.highlights,  liveBySection('top-highlight'), z);
   const news  =mergeSection3(DEMO.news,         DEMO_EXTRA.news,        liveBySection('whats-new'),     z);
   const ground=mergeSection3(DEMO.ground,       DEMO_EXTRA.ground,      liveBySection('on-ground'),     z);
@@ -704,15 +706,8 @@ function renderAll(){
     : (isAll?DEMO.birthdays:DEMO.birthdays.filter(b=>b.zone_slug===z).slice(0,limit));
 
   const topEmps = isAll ? null : (DEMO.topEmployees[z]||[]);
-  const gridCls = isAll ? 'g5' : 'g3';
 
   let html='';
-
-  // ── TOP HIGHLIGHTS + WHAT'S NEW ──────────────────────────
-  html+=slabel('Top Highlights','var(--sf)')+'&nbsp;&nbsp;&nbsp;&nbsp;'+slabelR("What's New",'var(--bl)');
-  // Actually render as two-col
-  html=html; // clear duplicate
-  html='';
   html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0;" class="sec-twocol">`;
 
   // Highlights list — show 5 initially, load more up to 10
@@ -1032,25 +1027,28 @@ function loadMoreInline(btn, listId, type){
 // ═══════════════════════════════════════════════════════════
 // INIT — load from Supabase then render
 // ═══════════════════════════════════════════════════════════
-async function init(){
-  renderDyn();
-  buildHero();
-  heroTimer=setInterval(()=>heroBy(1),5500);
-  renderAll(); // render with demo data immediately
+// Always render demo data immediately — no waiting
+renderDyn();
+buildHero();
+heroTimer = setInterval(()=>heroBy(1), 5500);
+renderAll();
 
-  // Then load live Supabase data
+// Then try to load live Supabase data on top
+(async function loadLive(){
   try{
+    if(typeof SG === 'undefined') return; // supabase.js not loaded, demo data already showing
     const [pub, bdays] = await Promise.all([SG.getPublished(), SG.getBirthdays()]);
     allPublished = pub || [];
     allBirthdays = bdays || [];
-    buildHero();    // rebuild hero with live data
-    renderAll();    // re-render all sections with live data
+    if(allPublished.length > 0 || allBirthdays.length > 0){
+      buildHero();
+      renderAll();
+    }
   }catch(e){
-    console.log('Using demo data:', e);
+    console.log('Live data unavailable, showing demo:', e);
+    // Demo data already rendered above — nothing to do
   }
-}
-
-init();
+})();
 </script>
 </body>
 </html>
