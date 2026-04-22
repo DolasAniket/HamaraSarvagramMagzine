@@ -372,6 +372,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
           <div class="field"><label>Zone <span class="req">*</span></label>
             <select id="f-zone">
               <option value="">Select zone…</option>
+              <option value="all">All Zones</option>
               <option value="gujarat">Gujarat</option>
               <option value="karnataka">Karnataka</option>
               <option value="maharashtra">Maharashtra</option>
@@ -939,8 +940,7 @@ async function doSubmit(){
   const content=(document.getElementById('f-content')?.value||'').trim();
   if(!empId){showErr('Please enter your Employee ID.');return;}
   if(!name){showErr('Please enter your name.');return;}
-  if(!zone){showErr('Please select your zone.');return;}
-  if(!title){showErr('Please enter a title.');return;}
+  if(!zone){showErr('Please select your zone.');return;}  if(!title){showErr('Please enter a title.');return;}
   if(!content){showErr('Please write your content.');return;}
   const extra={branch:document.getElementById('f-branch')?.value||''};
   if(currentCat==='story')extra.village=document.getElementById('f-village')?.value||'';

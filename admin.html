@@ -43,7 +43,8 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 /* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bl-m);}
 @media(max-width:500px){.stats-row{grid-template-columns:repeat(3,1fr);}}
-.astat{padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.1);}
+.astat{padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .15s;}
+.astat:hover{background:rgba(255,255,255,.1);}
 .astat:last-child{border-right:none;}
 .astat-n{font-size:20px;font-weight:700;color:#fff;}
 .astat-l{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;}
@@ -203,11 +204,21 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     <button class="mt-tab" onclick="showPanel('published',this)">📰 Live</button>
   </div>
   <div class="stats-row">
-    <div class="astat"><div class="astat-n" id="st-total">—</div><div class="astat-l">Total</div></div>
-    <div class="astat"><div class="astat-n n-pend" id="st-pend">—</div><div class="astat-l">Pending</div></div>
-    <div class="astat"><div class="astat-n n-app" id="st-app">—</div><div class="astat-l">Approved</div></div>
-    <div class="astat"><div class="astat-n n-pub" id="st-pub">—</div><div class="astat-l">Published</div></div>
-    <div class="astat"><div class="astat-n n-rej" id="st-rej">—</div><div class="astat-l">Rejected</div></div>
+    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('all',document.querySelectorAll('#panel-review .fb-btn')[0])" style="cursor:pointer;" title="View all submissions">
+      <div class="astat-n" id="st-total">—</div><div class="astat-l">Total</div>
+    </div>
+    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('pending',document.querySelectorAll('#panel-review .fb-btn')[1])" style="cursor:pointer;" title="View pending">
+      <div class="astat-n n-pend" id="st-pend">—</div><div class="astat-l">Pending</div>
+    </div>
+    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('approved',document.querySelectorAll('#panel-review .fb-btn')[2])" style="cursor:pointer;" title="View approved">
+      <div class="astat-n n-app" id="st-app">—</div><div class="astat-l">Approved</div>
+    </div>
+    <div class="astat" onclick="showPanel('published',document.querySelectorAll('.an-tab')[2])" style="cursor:pointer;" title="View published">
+      <div class="astat-n n-pub" id="st-pub">—</div><div class="astat-l">Published</div>
+    </div>
+    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('rejected',document.querySelectorAll('#panel-review .fb-btn')[3])" style="cursor:pointer;" title="View rejected">
+      <div class="astat-n n-rej" id="st-rej">—</div><div class="astat-l">Rejected</div>
+    </div>
   </div>
 
   <!-- REVIEW -->
@@ -717,8 +728,12 @@ function renderPublished(items){
   if(!items.length){document.getElementById('pub-list').innerHTML='<div class="empty">No published content for this filter.</div>';return;}
   const html=items.map(p=>{
     const imgUrl=p.extra_data&&p.extra_data.image_url;
+    const av=initials(p.emp_name);
+    const avatarHtml=imgUrl
+      ? `<img src="${esc(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`
+      : `<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${av}</div>`;
     return `<div class="pub-item" id="pi-${p.id}">
-      ${imgUrl?`<img src="${esc(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`:'<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${initials(p.emp_name)}</div>'}
+      ${avatarHtml}
       <div class="pi-body">
         <div class="pi-title">${esc(p.title)}</div>
         <div class="pi-meta">
