@@ -196,6 +196,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
       <button class="an-tab active" onclick="showPanel('review',this)">📋 Review</button>
       <button class="an-tab" onclick="showPanel('publish',this)">🚀 Publish Control</button>
       <button class="an-tab" onclick="showPanel('published',this)">📰 Live Content</button>
+      <button class="an-tab" onclick="showPanel('hero',this)">🎯 Hero Slider</button>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <a href="index.html" style="color:rgba(255,255,255,.75);font-size:13px;text-decoration:none;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;transition:all .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.75)'">← Magazine</a>
@@ -206,6 +207,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     <button class="mt-tab active" onclick="showPanel('review',this)">📋 Review</button>
     <button class="mt-tab" onclick="showPanel('publish',this)">🚀 Publish</button>
     <button class="mt-tab" onclick="showPanel('published',this)">📰 Live</button>
+    <button class="mt-tab" onclick="showPanel('hero',this)">🎯 Hero</button>
   </div>
   <div class="stats-row">
     <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('all',document.querySelectorAll('#panel-review .fb-btn')[0])" style="cursor:pointer;" title="View all submissions">
@@ -303,7 +305,32 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+  <!-- HERO SLIDER MANAGEMENT -->
+  <div class="panel" id="panel-hero">
+    <div style="max-width:700px;">
+      <div class="panel-card" style="margin-bottom:16px;">
+        <div class="pc-title">🎯 Hero Slider — Current Slides</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:14px;">Up to 5 slides. Each slide is a published post pinned to the <strong>Hero</strong> section. Drag to reorder, or remove and re-add.</p>
+        <div id="hero-slides-list"><div class="loader"><span class="spinner"></span></div></div>
+      </div>
+      <div class="panel-card">
+        <div class="pc-title">➕ Add Post to Hero</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:14px;">Choose any published post to feature in the hero slider.</p>
+        <div class="filter-bar" style="margin-bottom:12px;">
+          <select class="fb-sel" id="hero-zone-f" onchange="filterHeroQueue()">
+            <option value="">All Zones</option>
+            <option value="gujarat">Gujarat</option>
+            <option value="karnataka">Karnataka</option>
+            <option value="maharashtra">Maharashtra</option>
+            <option value="rajasthan">Rajasthan</option>
+            <option value="telangana">Telangana</option>
+          </select>
+          <input type="text" class="fb-search" id="hero-search" placeholder="Search by title or author…" oninput="filterHeroQueue()" style="flex:1;"/>
+        </div>
+        <div id="hero-queue-list"><div class="loader"><span class="spinner"></span></div></div>
+      </div>
+    </div>
+  </div>
 <div class="edit-overlay" id="edit-overlay">
   <div class="edit-modal">
     <div class="em-head">
@@ -317,6 +344,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     <div class="em-row">
       <div class="em-field"><label>Section</label>
         <select id="edit-section">
+          <option value="hero">Hero Slider</option>
           <option value="top-highlight">Top Highlight</option>
           <option value="whats-new">What's New</option>
           <option value="achievements">Achievements</option>
@@ -360,6 +388,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 <script src="supabase.js"></script>
 <script>
 const SECTIONS=[
+  {slug:'hero',name:'Hero Slider',max:5},
   {slug:'top-highlight',name:'Top Highlight',max:1},
   {slug:'whats-new',name:"What's New",max:3},
   {slug:'achievements',name:'Achievements',max:4},
@@ -714,6 +743,7 @@ async function loadPublished(){
     allPubContent=items;
     filteredPub=items;
     filterPublished();
+    if(document.getElementById('panel-hero')?.classList.contains('active')) loadHeroPanel();
   }catch(e){document.getElementById('pub-list').innerHTML='<div class="empty">Could not load published content.</div>';}
 }
 
@@ -785,6 +815,105 @@ function downloadCSV(){
   toast('✅ CSV downloaded');
 }
 
+// ── HERO MANAGEMENT ───────────────────────────────────────
+async function loadHeroPanel(){
+  renderHeroSlides();
+  renderHeroQueue();
+}
+
+function renderHeroSlides(){
+  const heroItems = allPubContent.filter(p=>p.section_slug==='hero' && p.is_active!==false)
+    .sort((a,b)=>(a.priority||3)-(b.priority||3));
+  const el=document.getElementById('hero-slides-list');
+  if(!heroItems.length){
+    el.innerHTML='<div class="empty" style="padding:12px;">No hero slides set yet. Add posts below.</div>';
+    return;
+  }
+  el.innerHTML=heroItems.map((p,i)=>`
+    <div class="pub-item" id="hs-${p.id}" style="margin-bottom:8px;">
+      <div class="rc-av" style="background:var(--bl-l);color:var(--bl);font-family:serif;font-size:16px;">${i+1}</div>
+      <div class="pi-body">
+        <div class="pi-title">${esc(p.title)}</div>
+        <div class="pi-meta">
+          <span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span>
+          <span style="font-size:11px;color:var(--mu);margin-left:6px;">${esc(p.emp_name)}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="act act-unpub" onclick="removeFromHero('${p.id}')" style="font-size:12px;padding:5px 10px;">✕ Remove</button>
+        ${i>0?`<button class="act" onclick="moveHero('${p.id}','up')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↑</button>`:''}
+        ${i<heroItems.length-1?`<button class="act" onclick="moveHero('${p.id}','down')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↓</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function filterHeroQueue(){
+  renderHeroQueue();
+}
+
+function renderHeroQueue(){
+  const zone=document.getElementById('hero-zone-f')?.value||'';
+  const q=(document.getElementById('hero-search')?.value||'').toLowerCase();
+  // Show all published content that is NOT already in hero, up to 20
+  const heroIds=new Set(allPubContent.filter(p=>p.section_slug==='hero').map(p=>p.id));
+  let pool = allPubContent.filter(p=>p.section_slug!=='hero' && p.is_active!==false && !heroIds.has(p.id));
+  if(zone) pool=pool.filter(p=>p.zone_slug===zone);
+  if(q) pool=pool.filter(p=>(p.title+p.emp_name).toLowerCase().includes(q));
+  pool=pool.slice(0,20);
+  const el=document.getElementById('hero-queue-list');
+  if(!pool.length){el.innerHTML='<div class="empty" style="padding:12px;">No posts found.</div>';return;}
+  el.innerHTML=pool.map(p=>`
+    <div class="pq-item">
+      <div style="flex:1;">
+        <div class="pq-title">${esc(p.title)}</div>
+        <div class="pq-meta">${esc(p.emp_name)} · ${ZONE_NAMES[p.zone_slug]||p.zone_slug} · ${SEC_NAMES[p.section_slug]||p.section_slug}</div>
+      </div>
+      <button class="act act-pub" style="font-size:12px;padding:5px 12px;" onclick="addToHero('${p.id}')">+ Add to Hero</button>
+    </div>`).join('');
+}
+
+async function addToHero(id){
+  const p=allPubContent.find(x=>x.id===id);
+  if(!p){toast('Post not found');return;}
+  const heroItems=allPubContent.filter(x=>x.section_slug==='hero'&&x.is_active!==false);
+  if(heroItems.length>=5){toast('⚠️ Hero already has 5 slides. Remove one first.');return;}
+  try{
+    await sb_update_published(id,{section_slug:'hero',priority:heroItems.length+1});
+    p.section_slug='hero'; p.priority=heroItems.length+1;
+    renderHeroSlides(); renderHeroQueue();
+    toast('✅ Added to Hero slider');
+  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+}
+
+async function removeFromHero(id){
+  const p=allPubContent.find(x=>x.id===id);
+  if(!p)return;
+  // Move back to its original section (whats-new as default) or remove from hero
+  try{
+    const origSection=p.category==='achievement'?'achievements':p.category==='idea'?'ideas':'whats-new';
+    await sb_update_published(id,{section_slug:origSection,priority:3});
+    p.section_slug=origSection; p.priority=3;
+    renderHeroSlides(); renderHeroQueue();
+    toast('↩ Removed from Hero — moved back to '+SEC_NAMES[origSection]);
+  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+}
+
+async function moveHero(id,dir){
+  const heroItems=allPubContent.filter(p=>p.section_slug==='hero'&&p.is_active!==false)
+    .sort((a,b)=>(a.priority||3)-(b.priority||3));
+  const idx=heroItems.findIndex(p=>p.id===id);
+  if(idx===-1)return;
+  const swapIdx=dir==='up'?idx-1:idx+1;
+  if(swapIdx<0||swapIdx>=heroItems.length)return;
+  const a=heroItems[idx], b=heroItems[swapIdx];
+  const tmpP=a.priority; a.priority=b.priority; b.priority=tmpP;
+  try{
+    await Promise.all([sb_update_published(a.id,{priority:a.priority}),sb_update_published(b.id,{priority:b.priority})]);
+    renderHeroSlides();
+    toast('↕ Reordered');
+  }catch(e){toast('❌ Failed');}
+}
+
 // ── NAV ───────────────────────────────────────────────────
 function showPanel(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -793,6 +922,7 @@ function showPanel(id,btn){
   if(btn)btn.classList.add('active');
   if(id==='publish'){renderReadyQueue();renderCapBars();renderRecentPub();}
   if(id==='published')loadPublished();
+  if(id==='hero')loadHeroPanel();
 }
 
 window.addEventListener('DOMContentLoaded',()=>{

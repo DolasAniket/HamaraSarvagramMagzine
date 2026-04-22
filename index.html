@@ -684,14 +684,23 @@ function buildHero(){
   const dotsEl=document.getElementById('hero-dots');
   track.innerHTML=''; dotsEl.innerHTML='';
 
-  // Build hero from live top-highlight + whats-new + demo fallback
-  const liveHero = [...liveBySection('top-highlight'),...liveBySection('whats-new')].slice(0,5);
+  // Hero slides: admin-pinned 'hero' section takes priority, falls back to demo
+  const liveHero = liveBySection('hero').slice(0,5);
   const slides = liveHero.length > 0
-    ? liveHero.map(l=>({zone:l.zone_slug,emoji:EMO[l.category]||'🌾',hg:HGS[ZONES.indexOf(l.zone_slug)%5]||'hg1',cat:l.section_slug==='top-highlight'?'Cover Story':'What\'s New',title:esc(l.title),para:esc((l.content||'').slice(0,200)),by:l.emp_name,av:initials(l.emp_name)}))
+    ? liveHero.map(l=>({
+        zone:l.zone_slug,
+        emoji:EMO[l.category]||'🌾',
+        hg:HGS[ZONES.indexOf(l.zone_slug)%5]||'hg1',
+        cat:l.category==='achievement'?'Achievement':l.category==='story'?'Field Story':l.category==='announcement'?'Announcement':'Cover Story',
+        title:esc(l.title),
+        para:esc((l.content||'').slice(0,200)),
+        by:l.emp_name,
+        av:initials(l.emp_name),
+        img:l.extra_data&&l.extra_data.image_url
+      }))
     : DEMO.hero;
 
-  // For zone-filtered view, show relevant slide
-  const displaySlides = currentZone==='all' ? slides : slides.filter(s=>s.zone===currentZone||!s.zone).slice(0,3);
+  const displaySlides = currentZone==='all' ? slides : slides.filter(s=>s.zone===currentZone||!s.zone);
   const actualSlides = displaySlides.length>0 ? displaySlides : slides;
 
   actualSlides.forEach((s,i)=>{
@@ -701,7 +710,10 @@ function buildHero(){
     slide.className='hero-slide';
     slide.innerHTML=`
       <div class="hero-img-box">
-        <div class="hero-img-inner ${s.hg}" style="font-size:72px;">${s.emoji}</div>
+        ${s.img
+          ? `<img src="${esc(s.img)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<div class=\\'hero-img-inner ${s.hg}\\' style=\\'font-size:72px;\\'>${s.emoji}</div>'"/>`
+          : `<div class="hero-img-inner ${s.hg}" style="font-size:72px;">${s.emoji}</div>`
+        }
         <span class="hero-badge">${esc(s.cat)}</span>
         <span class="hero-zone-pill" style="background:${zbg};color:${zc};">${ZN[s.zone]||''}</span>
       </div>
