@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--sf:#F47920;--sf-l:#FEF0E6;--bl:#2B398E;--bl-m:#3D52B8;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--red:#C62828;--red-l:#FFEBEE;--radius:12px;}
+:root{--sf:#F47920;--sf-l:#FEF0E6;--bl:#2B398E;--bl-m:#3D52B8;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--red:#C62828;--red-l:#FFEBEE;--r:12px;}
 body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 
 /* LOGIN */
@@ -24,7 +24,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
 .login-note{font-size:11px;color:var(--mu);margin-top:16px;line-height:1.5;}
 
-/* ADMIN SHELL */
+/* SHELL */
 .admin-shell{display:none;min-height:100vh;}
 .admin-nav{background:var(--bl);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.2);}
 .an-brand{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;display:flex;align-items:center;gap:8px;}
@@ -35,22 +35,19 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .logout-btn{color:rgba(255,255,255,.6);font-size:13px;background:none;border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Mukta',sans-serif;}
 .logout-btn:hover{color:#fff;}
 @media(max-width:640px){.an-tabs{display:none;}}
-.mobile-tabs{display:none;background:var(--card);border-bottom:1px solid var(--bdr);}
-@media(max-width:640px){.mobile-tabs{display:flex;overflow-x:auto;}}
+.mobile-tabs{display:none;background:var(--card);border-bottom:1px solid var(--bdr);overflow-x:auto;}
+@media(max-width:640px){.mobile-tabs{display:flex;}}
 .mt-tab{flex:1;padding:10px 8px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;font-family:'Mukta',sans-serif;color:var(--mu);border-bottom:3px solid transparent;white-space:nowrap;}
 .mt-tab.active{color:var(--bl);border-bottom-color:var(--bl);}
 
 /* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--bl-m);}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bl-m);}
 @media(max-width:500px){.stats-row{grid-template-columns:repeat(3,1fr);}}
 .astat{padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.1);}
 .astat:last-child{border-right:none;}
 .astat-n{font-size:20px;font-weight:700;color:#fff;}
 .astat-l{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;}
-.n-pend{color:#FFD54F;}
-.n-app{color:#90CAF9;}
-.n-pub{color:#A5D6A7;}
-.n-rej{color:#EF9A9A;}
+.n-pend{color:#FFD54F;}.n-app{color:#90CAF9;}.n-pub{color:#A5D6A7;}.n-rej{color:#EF9A9A;}
 
 /* PANELS */
 .panel{display:none;padding:16px;max-width:1100px;margin:0 auto;}
@@ -65,10 +62,23 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .dl-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--gr-l);color:var(--gr-d);cursor:pointer;font-family:'Mukta',sans-serif;white-space:nowrap;}
 .dl-btn:hover{background:var(--gr);color:#fff;}
 
+/* BULK ACTIONS BAR */
+.bulk-bar{background:var(--bl-l);border-radius:10px;padding:10px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap;}
+.bulk-bar.show{display:flex;}
+.bulk-count{font-size:13px;font-weight:700;color:var(--bl);}
+.bulk-act{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;}
+.ba-app{background:var(--gr-l);color:var(--gr-d);}
+.ba-app:hover{background:var(--gr);color:#fff;}
+.ba-rej{background:var(--red-l);color:var(--red);}
+.ba-rej:hover{background:var(--red);color:#fff;}
+.ba-clr{background:none;color:var(--mu);border:1px solid var(--bdr);}
+
 /* REVIEW CARDS */
-.rev-card{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:16px;margin-bottom:12px;transition:box-shadow .2s;}
+.rev-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:16px;margin-bottom:10px;transition:box-shadow .2s;}
 .rev-card:hover{box-shadow:0 4px 16px rgba(43,57,142,.1);}
+.rev-card.selected{border-color:var(--bl);background:#fafbff;}
 .rc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.rc-cb{width:18px;height:18px;border:2px solid var(--bdr);border-radius:4px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--bl);}
 .rc-av{width:36px;height:36px;border-radius:50%;background:var(--bl-l);color:var(--bl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
 .rc-info{flex:1;}
 .rc-name{font-size:14px;font-weight:700;}
@@ -78,7 +88,9 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .rs-app{background:#E3F2FD;color:#1565C0;}
 .rs-pub{background:var(--gr-l);color:var(--gr-d);}
 .rs-rej{background:var(--red-l);color:var(--red);}
-.rc-content{font-size:13px;color:var(--ink);line-height:1.5;background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:12px;}
+.rs-unp{background:#EEE;color:#666;}
+.rc-content{font-size:13px;color:var(--ink);line-height:1.5;background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:10px;}
+.rc-img{max-width:100%;max-height:120px;border-radius:8px;margin-bottom:8px;display:block;}
 .rc-title{font-weight:700;font-size:14px;margin-bottom:4px;}
 .rc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .act{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;}
@@ -89,30 +101,48 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .act-rej-btn:hover:not(:disabled){background:var(--red);color:#fff;}
 .act-pub{background:var(--bl);color:#fff;}
 .act-pub:hover:not(:disabled){background:var(--bl-m);}
+.act-edit{background:var(--sf-l);color:#C9601A;}
+.act-edit:hover{background:var(--sf);color:#fff;}
 .act-unpub{background:#EEE;color:var(--mu);}
 .act-unpub:hover{background:#DDD;}
+.act-restore{background:var(--gr-l);color:var(--gr-d);}
+.act-restore:hover{background:var(--gr);color:#fff;}
 .rc-sel{padding:5px 10px;border-radius:20px;font-size:12px;border:1px solid var(--bdr);background:var(--card);font-family:'Mukta',sans-serif;outline:none;cursor:pointer;}
 .pdots{display:flex;gap:4px;align-items:center;}
 .pdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--bdr);cursor:pointer;background:var(--bg);transition:all .15s;}
 .pdot.p1.on{background:var(--gr);border-color:var(--gr);}
 .pdot.p2.on{background:var(--sf);border-color:var(--sf);}
 .pdot.p3.on{background:var(--red);border-color:var(--red);}
-.rej-box{margin-top:10px;display:none;}
+.rej-box{margin-top:8px;display:none;}
 .rej-box textarea{width:100%;padding:8px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:'Mukta',sans-serif;resize:none;outline:none;margin-bottom:6px;}
 .rej-confirm{padding:6px 14px;border-radius:8px;background:var(--red);color:#fff;border:none;cursor:pointer;font-family:'Mukta',sans-serif;font-size:13px;font-weight:600;}
+
+/* EDIT MODAL */
+.edit-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.edit-overlay.show{display:flex;}
+.edit-modal{background:var(--card);border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:24px;}
+.em-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.em-title{font-size:18px;font-weight:700;color:var(--bl);}
+.em-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--mu);}
+.em-field{margin-bottom:14px;}
+.em-field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.em-field input,.em-field select,.em-field textarea{width:100%;padding:10px 13px;border:1px solid var(--bdr);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;outline:none;background:var(--bg);}
+.em-field input:focus,.em-field select:focus,.em-field textarea:focus{border-color:var(--bl);background:#fff;}
+.em-field textarea{resize:vertical;min-height:80px;line-height:1.5;}
+.em-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.em-save{width:100%;padding:12px;border-radius:8px;background:var(--bl);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;margin-top:4px;}
+.em-save:hover{background:var(--bl-m);}
 
 /* PUBLISH PANEL */
 .pub-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
 @media(max-width:800px){.pub-grid{grid-template-columns:1fr;}}
-.panel-card{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:16px;}
+.panel-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:16px;}
 .pc-title{font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
 .cap-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .cap-name{font-size:13px;font-weight:600;width:120px;flex-shrink:0;}
 .cap-bar-wrap{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
 .cap-bar{height:100%;border-radius:4px;transition:width .4s;}
-.cap-full{background:var(--gr);}
-.cap-mid{background:var(--sf);}
-.cap-empty{background:var(--bdr);}
+.cap-full{background:var(--gr);}.cap-mid{background:var(--sf);}.cap-empty{background:var(--bdr);}
 .cap-count{font-size:11px;color:var(--mu);width:36px;text-align:right;}
 .pq-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr);}
 .pq-item:last-child{border-bottom:none;}
@@ -121,12 +151,13 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .pq-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;}
 
 /* PUBLISHED */
-.pub-item{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
+.pub-item{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
 .pi-body{flex:1;}
 .pi-title{font-size:14px;font-weight:700;margin-bottom:3px;}
 .pi-meta{font-size:11px;color:var(--mu);margin:4px 0 6px;}
 .pi-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;}
 .pi-zone{font-size:10px;background:var(--sf-l);color:#C9601A;padding:2px 7px;border-radius:8px;font-weight:600;margin-left:4px;}
+.pi-img{width:60px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0;}
 
 /* UTILS */
 .loader{text-align:center;padding:32px;color:var(--mu);}
@@ -136,6 +167,9 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .toast{position:fixed;bottom:24px;right:20px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:1000;}
 .toast.show{display:block;animation:slideUp .25s ease;}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.prio-bar{display:flex;align-items:center;gap:6px;}
+.prio-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.prio-btn:hover{background:var(--bl-l);}
 </style>
 </head>
 <body>
@@ -152,7 +186,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN SHELL -->
 <div id="admin-shell" class="admin-shell">
   <nav class="admin-nav">
     <div class="an-brand">SG Admin <span class="admin-badge">ADMIN</span></div>
@@ -176,13 +210,14 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     <div class="astat"><div class="astat-n n-rej" id="st-rej">—</div><div class="astat-l">Rejected</div></div>
   </div>
 
-  <!-- REVIEW PANEL -->
+  <!-- REVIEW -->
   <div class="panel active" id="panel-review">
     <div class="filter-bar">
       <button class="fb-btn active" onclick="filterSubs('all',this)">All</button>
       <button class="fb-btn" onclick="filterSubs('pending',this)">Pending</button>
       <button class="fb-btn" onclick="filterSubs('approved',this)">Approved</button>
       <button class="fb-btn" onclick="filterSubs('rejected',this)">Rejected</button>
+      <button class="fb-btn" onclick="filterSubs('unpublished',this)">Unpublished</button>
       <select class="fb-sel" id="zone-filter" onchange="applyFilters()">
         <option value="">All Zones</option>
         <option value="gujarat">Gujarat</option>
@@ -191,13 +226,19 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
         <option value="rajasthan">Rajasthan</option>
         <option value="telangana">Telangana</option>
       </select>
-      <input type="text" class="fb-search" id="search-input" placeholder="Search…" oninput="applyFilters()"/>
-      <button class="dl-btn" onclick="downloadCSV()">⬇ Download CSV</button>
+      <input type="text" class="fb-search" id="search-input" placeholder="Search by name, keyword…" oninput="applyFilters()"/>
+      <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
+    </div>
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 selected</span>
+      <button class="bulk-act ba-app" onclick="bulkApprove()">✓ Approve All</button>
+      <button class="bulk-act ba-rej" onclick="bulkReject()">✗ Reject All</button>
+      <button class="bulk-act ba-clr" onclick="clearSelection()">Clear</button>
     </div>
     <div id="review-list"><div class="loader"><span class="spinner"></span>Loading…</div></div>
   </div>
 
-  <!-- PUBLISH PANEL -->
+  <!-- PUBLISH CONTROL -->
   <div class="panel" id="panel-publish">
     <div class="pub-grid">
       <div>
@@ -219,7 +260,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     </div>
   </div>
 
-  <!-- LIVE CONTENT PANEL -->
+  <!-- LIVE CONTENT -->
   <div class="panel" id="panel-published">
     <div class="filter-bar">
       <select class="fb-sel" id="pub-zone-f" onchange="loadPublished()">
@@ -241,8 +282,61 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
         <option value="quick-bytes">Quick Bytes</option>
         <option value="zone-news">Zone News</option>
       </select>
+      <input type="text" class="fb-search" id="pub-search" placeholder="Search live content…" oninput="filterPublished()"/>
     </div>
     <div id="pub-list"><div class="loader"><span class="spinner"></span></div></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="edit-overlay" id="edit-overlay">
+  <div class="edit-modal">
+    <div class="em-head">
+      <div class="em-title">✏️ Edit Post</div>
+      <button class="em-x" onclick="closeEdit()">✕</button>
+    </div>
+    <input type="hidden" id="edit-id"/>
+    <input type="hidden" id="edit-type"/> <!-- submission or published -->
+    <div class="em-field"><label>Title</label><input type="text" id="edit-title"/></div>
+    <div class="em-field"><label>Content</label><textarea id="edit-content" rows="5"></textarea></div>
+    <div class="em-row">
+      <div class="em-field"><label>Section</label>
+        <select id="edit-section">
+          <option value="top-highlight">Top Highlight</option>
+          <option value="whats-new">What's New</option>
+          <option value="achievements">Achievements</option>
+          <option value="ideas">Ideas</option>
+          <option value="spotlight">Spotlight</option>
+          <option value="on-ground">On-Ground</option>
+          <option value="quick-bytes">Quick Bytes</option>
+          <option value="zone-news">Zone News</option>
+        </select>
+      </div>
+      <div class="em-field"><label>Zone</label>
+        <select id="edit-zone">
+          <option value="gujarat">Gujarat</option>
+          <option value="karnataka">Karnataka</option>
+          <option value="maharashtra">Maharashtra</option>
+          <option value="rajasthan">Rajasthan</option>
+          <option value="telangana">Telangana</option>
+        </select>
+      </div>
+    </div>
+    <div class="em-row">
+      <div class="em-field"><label>Priority (1=High, 3=Low)</label>
+        <select id="edit-priority">
+          <option value="1">1 — High (shows first)</option>
+          <option value="2">2 — Medium</option>
+          <option value="3" selected>3 — Standard</option>
+          <option value="4">4 — Low</option>
+          <option value="5">5 — Lowest</option>
+        </select>
+      </div>
+      <div class="em-field"><label>Image URL (optional)</label>
+        <input type="text" id="edit-image" placeholder="https://… or Google Drive link"/>
+      </div>
+    </div>
+    <button class="em-save" onclick="saveEdit()">Save Changes</button>
   </div>
 </div>
 
@@ -264,7 +358,7 @@ const SEC_NAMES=Object.fromEntries(SECTIONS.map(s=>[s.slug,s.name]));
 const CAT_LABELS={thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
 const ZONE_NAMES={all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
 
-let allSubs=[], currentFilter='all';
+let allSubs=[], currentFilter='all', selectedIds=new Set(), allPubContent=[];
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function ago(dt){const d=Math.floor((Date.now()-new Date(dt))/864e5);return d<=0?'Today':d===1?'Yesterday':d+'d ago';}
@@ -282,23 +376,16 @@ async function doLogin(){
     await SG.adminLogin(pw);
     document.getElementById('login-screen').style.display='none';
     document.getElementById('admin-shell').style.display='block';
-    await loadSubs();
-    await loadPublished();
-  }catch(e){
-    document.getElementById('login-err').style.display='block';
-  }
+    await loadSubs();await loadPublished();
+  }catch(e){document.getElementById('login-err').style.display='block';}
 }
 
 async function loadSubs(){
   try{
     allSubs=await SG.getAllSubmissions();
-    updateStats();
-    applyFilters();
-    renderCapBars();
-    renderReadyQueue();
-    renderRecentPub();
+    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();
   }catch(e){
-    document.getElementById('review-list').innerHTML='<div class="empty">Could not load submissions. Check Supabase connection.</div>';
+    document.getElementById('review-list').innerHTML='<div class="empty">Could not load. Check Supabase.</div>';
   }
 }
 
@@ -322,7 +409,12 @@ function applyFilters(){
   const zone=document.getElementById('zone-filter').value;
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   let list=allSubs;
-  if(currentFilter!=='all')list=list.filter(s=>s.status===currentFilter);
+  if(currentFilter==='unpublished'){
+    // Show items that were published and then unpublished (status=approved but were published)
+    list=list.filter(s=>s.status==='approved'&&s.published_at);
+  } else if(currentFilter!=='all'){
+    list=list.filter(s=>s.status===currentFilter);
+  }
   if(zone)list=list.filter(s=>s.zone_slug===zone);
   if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
   renderReview(list);
@@ -332,11 +424,11 @@ const statusMap={
   pending:{cls:'rs-pend',lbl:'Pending'},
   approved:{cls:'rs-app',lbl:'Approved'},
   rejected:{cls:'rs-rej',lbl:'Rejected'},
-  published:{cls:'rs-pub',lbl:'Published'}
+  published:{cls:'rs-pub',lbl:'Published'},
+  unpublished:{cls:'rs-unp',lbl:'Unpublished'}
 };
 
 function renderReview(list){
-  if(!list){list=allSubs;}
   if(!list.length){document.getElementById('review-list').innerHTML='<div class="empty">No submissions found.</div>';return;}
   let html='';
   list.forEach(s=>{
@@ -344,31 +436,38 @@ function renderReview(list){
     const canApp=s.status==='pending';
     const canPub=s.status==='approved';
     const canRej=s.status==='pending'||s.status==='approved';
+    const isPublished=s.status==='published';
     const prio=s.priority||3;
-    const dots=[1,2,3].map(i=>`<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${s.id}',${i})"></div>`).join('');
+    const dots=[1,2,3].map(i=>`<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${s.id}',${i})" title="Priority ${i}"></div>`).join('');
     const secOpts=SECTIONS.map(sec=>`<option value="${sec.slug}"${s.section_slug===sec.slug?' selected':''}>${sec.name}</option>`).join('');
-    html+=`<div class="rev-card" id="rc-${s.id}">
+    const imgHtml=s.extra_data&&s.extra_data.image_url?`<img src="${esc(s.extra_data.image_url)}" class="rc-img" onerror="this.style.display='none'"/>`:''
+    html+=`<div class="rev-card${selectedIds.has(s.id)?' selected':''}" id="rc-${s.id}">
       <div class="rc-top">
+        <input type="checkbox" class="rc-cb" ${selectedIds.has(s.id)?'checked':''} onchange="toggleSel('${s.id}',this)"/>
         <div class="rc-av">${initials(s.emp_name)}</div>
         <div class="rc-info">
-          <div class="rc-name">${esc(s.emp_name)} <span style="font-weight:400;color:var(--mu);font-size:12px;">${esc(s.emp_id)}</span></div>
+          <div class="rc-name">${esc(s.emp_name)} <span style="font-weight:400;color:var(--mu);font-size:11px;">${esc(s.emp_id)}</span></div>
           <div class="rc-meta">${ZONE_NAMES[s.zone_slug]||s.zone_slug} · ${ago(s.created_at)} · ${CAT_LABELS[s.category]||s.category}${s.extra_data&&s.extra_data.branch?' · '+esc(s.extra_data.branch):''}</div>
         </div>
         <span class="rc-status ${sm.cls}">${sm.lbl}</span>
       </div>
-      <div class="rc-content"><div class="rc-title">${esc(s.title)}</div>${esc(s.content)}</div>
+      <div class="rc-content">${imgHtml}<div class="rc-title">${esc(s.title)}</div>${esc(s.content)}</div>
       <div class="rc-actions">
-        ${canApp?`<button class="act act-app" id="app-${s.id}" onclick="approve('${s.id}')">✓ Approve</button>`:''}
-        ${canRej?`<button class="act act-rej-btn" id="rej-${s.id}" onclick="showRej('${s.id}')">✗ Reject</button>`:''}
+        ${canApp?`<button class="act act-app" onclick="approve('${s.id}')">✓ Approve</button>`:''}
+        ${canRej?`<button class="act act-rej-btn" onclick="showRej('${s.id}')">✗ Reject</button>`:''}
         ${canPub?`
           <select class="rc-sel" id="sec-${s.id}"><option value="">Set section…</option>${secOpts}</select>
-          <div class="pdots" title="Priority 1=High 3=Low">${dots}</div>
-          <button class="act act-pub" id="pub-${s.id}" onclick="publish('${s.id}')">🚀 Publish</button>
+          <div class="pdots" title="Priority: 1=High">${dots}</div>
+          <button class="act act-pub" onclick="publish('${s.id}')">🚀 Publish</button>
         `:''}
-        ${s.status==='published'?`<span style="font-size:12px;color:var(--gr-d);">📰 ${SEC_NAMES[s.section_slug]||s.section_slug||'—'}</span>`:''}
+        ${isPublished?`
+          <span style="font-size:11px;color:var(--gr-d);">📰 ${SEC_NAMES[s.section_slug]||'—'}</span>
+          <button class="act act-unpub" onclick="unpublishSub('${s.id}')">↩ Unpublish</button>
+        `:''}
+        <button class="act act-edit" onclick="openEdit('${s.id}','submission')" style="margin-left:auto;">✏️ Edit</button>
       </div>
       <div class="rej-box" id="rej-box-${s.id}">
-        <textarea id="rej-note-${s.id}" rows="2" placeholder="Optional: reason for rejection (shown to submitter)"></textarea>
+        <textarea id="rej-note-${s.id}" rows="2" placeholder="Reason for rejection (shown to employee)…"></textarea>
         <button class="rej-confirm" onclick="confirmRej('${s.id}')">Confirm Rejection</button>
       </div>
     </div>`;
@@ -376,8 +475,47 @@ function renderReview(list){
   document.getElementById('review-list').innerHTML=html;
 }
 
+// ── SELECTION & BULK ──────────────────────────────────────
+function toggleSel(id,cb){
+  if(cb.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  const card=document.getElementById('rc-'+id);
+  if(card) card.classList.toggle('selected',cb.checked);
+  updateBulkBar();
+}
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');
+  const count=selectedIds.size;
+  if(count>0){bar.classList.add('show');document.getElementById('bulk-count').textContent=count+' selected';}
+  else bar.classList.remove('show');
+}
+function clearSelection(){selectedIds.clear();applyFilters();}
+
+async function bulkApprove(){
+  if(!selectedIds.size) return;
+  const ids=[...selectedIds];
+  try{
+    await Promise.all(ids.map(id=>SG.updateSubmission(id,{status:'approved'})));
+    ids.forEach(id=>{const s=allSubs.find(x=>x.id===id);if(s)s.status='approved';});
+    clearSelection();updateStats();applyFilters();renderCapBars();renderReadyQueue();
+    toast(`✅ ${ids.length} submissions approved`);
+  }catch(e){toast('❌ Bulk approve failed');}
+}
+
+async function bulkReject(){
+  if(!selectedIds.size) return;
+  const ids=[...selectedIds];
+  try{
+    await Promise.all(ids.map(id=>SG.updateSubmission(id,{status:'rejected'})));
+    ids.forEach(id=>{const s=allSubs.find(x=>x.id===id);if(s)s.status='rejected';});
+    clearSelection();updateStats();applyFilters();
+    toast(`${ids.length} submissions rejected`);
+  }catch(e){toast('❌ Bulk reject failed');}
+}
+
+// ── APPROVE / REJECT / PUBLISH / UNPUBLISH ────────────────
 async function approve(id){
-  const btn=document.getElementById('app-'+id);
+  const btn=document.querySelector(`#rc-${id} .act-app`);
   if(btn)btn.disabled=true;
   try{
     await SG.updateSubmission(id,{status:'approved'});
@@ -385,11 +523,7 @@ async function approve(id){
     if(s)s.status='approved';
     updateStats();applyFilters();renderCapBars();renderReadyQueue();
     toast('✅ Approved');
-  }catch(e){
-    console.error(e);
-    toast('❌ Error: '+JSON.stringify(e));
-    if(btn)btn.disabled=false;
-  }
+  }catch(e){console.error(e);toast('❌ Error: '+JSON.stringify(e));if(btn)btn.disabled=false;}
 }
 
 function showRej(id){
@@ -406,19 +540,14 @@ async function confirmRej(id){
     if(s){s.status='rejected';s.admin_note=note;}
     updateStats();applyFilters();renderCapBars();
     toast('Rejected');
-  }catch(e){
-    console.error(e);
-    toast('❌ Error: '+JSON.stringify(e));
-  }
+  }catch(e){toast('❌ Error: '+JSON.stringify(e));}
 }
 
 function setPrio(id,val){
   const s=allSubs.find(x=>x.id===id);
   if(s)s.priority=val;
   const card=document.getElementById('rc-'+id);
-  if(card)card.querySelectorAll('.pdot').forEach((d,i)=>{
-    d.classList.toggle('on',i<val);
-  });
+  if(card)card.querySelectorAll('.pdot').forEach((d,i)=>{d.classList.toggle('on',i<val);});
 }
 
 async function publish(id){
@@ -426,18 +555,29 @@ async function publish(id){
   if(!secEl?.value){toast('⚠️ Please select a section first.');return;}
   const s=allSubs.find(x=>x.id===id);
   if(!s)return;
-  const btn=document.getElementById('pub-'+id);
+  const btn=document.querySelector(`#rc-${id} .act-pub`);
   if(btn)btn.disabled=true;
   try{
     await SG.publishSubmission(s,secEl.value,s.priority||3);
     s.status='published';s.section_slug=secEl.value;
     updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
     toast('🚀 Published to '+SEC_NAMES[secEl.value]);
-  }catch(e){
-    console.error(e);
-    toast('❌ Publish failed: '+JSON.stringify(e));
-    if(btn)btn.disabled=false;
-  }
+  }catch(e){console.error(e);toast('❌ Publish failed: '+JSON.stringify(e));if(btn)btn.disabled=false;}
+}
+
+async function unpublishSub(subId){
+  if(!confirm('Remove this post from the live magazine? It will stay in your submissions as Approved.'))return;
+  try{
+    // Find the published_content row by submission_id
+    const pub=allPubContent.find(p=>p.submission_id===subId);
+    if(pub) await SG.unpublishContent(pub.id);
+    // Reset submission back to approved
+    await SG.updateSubmission(subId,{status:'approved',published_at:null});
+    const s=allSubs.find(x=>x.id===subId);
+    if(s){s.status='approved';s.published_at=null;}
+    updateStats();applyFilters();renderCapBars();renderReadyQueue();loadPublished();
+    toast('↩ Post removed from live magazine — status reset to Approved');
+  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
 }
 
 async function publishFromQueue(id){
@@ -450,11 +590,73 @@ async function publishFromQueue(id){
     s.status='published';s.section_slug=secEl.value;
     updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
     toast('🚀 Published!');
-  }catch(e){
-    toast('❌ Failed: '+JSON.stringify(e));
-  }
+  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
 }
 
+// ── EDIT MODAL ────────────────────────────────────────────
+function openEdit(id, type){
+  const data = type==='submission'
+    ? allSubs.find(x=>x.id===id)
+    : allPubContent.find(x=>x.id===id);
+  if(!data)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-type').value=type;
+  document.getElementById('edit-title').value=data.title||'';
+  document.getElementById('edit-content').value=data.content||'';
+  document.getElementById('edit-section').value=data.section_slug||'whats-new';
+  document.getElementById('edit-zone').value=data.zone_slug||'maharashtra';
+  document.getElementById('edit-priority').value=data.priority||3;
+  const imgUrl=(data.extra_data&&data.extra_data.image_url)||'';
+  document.getElementById('edit-image').value=imgUrl;
+  document.getElementById('edit-overlay').classList.add('show');
+}
+
+function closeEdit(){document.getElementById('edit-overlay').classList.remove('show');}
+
+async function saveEdit(){
+  const id=document.getElementById('edit-id').value;
+  const type=document.getElementById('edit-type').value;
+  const title=document.getElementById('edit-title').value.trim();
+  const content=document.getElementById('edit-content').value.trim();
+  const section=document.getElementById('edit-section').value;
+  const zone=document.getElementById('edit-zone').value;
+  const priority=parseInt(document.getElementById('edit-priority').value)||3;
+  const imageUrl=document.getElementById('edit-image').value.trim();
+
+  if(!title||!content){toast('⚠️ Title and content are required.');return;}
+
+  const extraUpdate=imageUrl?{image_url:imageUrl}:{};
+
+  try{
+    if(type==='submission'){
+      await SG.updateSubmission(id,{title,content,section_slug:section,zone_slug:zone,priority,extra_data:extraUpdate});
+      const s=allSubs.find(x=>x.id===id);
+      if(s){s.title=title;s.content=content;s.section_slug=section;s.zone_slug=zone;s.priority=priority;s.extra_data=extraUpdate;}
+    } else {
+      // Update published_content directly
+      await sb_update_published(id,{title,content,section_slug:section,zone_slug:zone,priority,extra_data:extraUpdate});
+      const p=allPubContent.find(x=>x.id===id);
+      if(p){p.title=title;p.content=content;p.section_slug=section;p.zone_slug=zone;p.priority=priority;p.extra_data=extraUpdate;}
+    }
+    closeEdit();
+    applyFilters();renderCapBars();loadPublished();
+    toast('✅ Post updated');
+  }catch(e){toast('❌ Save failed: '+JSON.stringify(e));}
+}
+
+// Direct update to published_content (reuses sb from supabase.js scope)
+async function sb_update_published(id,data){
+  const params=`id=eq.${encodeURIComponent(id)}`;
+  const r=await fetch(`${window.SG_URL||'https://ixdpsknbijcwkynolghs.supabase.co'}/rest/v1/published_content?${params}`,{
+    method:'PATCH',
+    headers:{'apikey':'sb_publishable_y8omoHb5KKK_iLdD47MvYg_NknhP1to','Authorization':'Bearer sb_publishable_y8omoHb5KKK_iLdD47MvYg_NknhP1to','Content-Type':'application/json','Prefer':'return=representation'},
+    body:JSON.stringify(data)
+  });
+  if(!r.ok){const e=await r.json();throw e;}
+  return r.json();
+}
+
+// ── PUBLISH PANEL ──────────────────────────────────────────
 function renderCapBars(){
   const pub=allSubs.filter(s=>s.status==='published');
   let html='';
@@ -472,7 +674,7 @@ function renderReadyQueue(){
   if(!approved.length){document.getElementById('ready-queue').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">No approved items waiting.</div>';return;}
   let html=approved.map(s=>`
     <div class="pq-item">
-      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${CAT_LABELS[s.category]}</div></div>
+      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${CAT_LABELS[s.category]||s.category}</div></div>
       <select class="rc-sel" id="qsec-${s.id}" style="font-size:11px;"><option value="">Section…</option>${SECTIONS.map(sec=>`<option value="${sec.slug}">${sec.name}</option>`).join('')}</select>
       <button class="act act-pub" style="font-size:11px;padding:4px 10px;" onclick="publishFromQueue('${s.id}')">Pub</button>
     </div>`).join('');
@@ -482,43 +684,70 @@ function renderReadyQueue(){
 function renderRecentPub(){
   const pub=allSubs.filter(s=>s.status==='published').slice(0,8);
   if(!pub.length){document.getElementById('recent-pub').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">Nothing published yet.</div>';return;}
-  let html=pub.map(p=>`<div class="pq-item"><div><div class="pq-title">${esc(p.title)}</div><div class="pq-meta">${esc(p.emp_name)}</div></div><span class="pq-sec">${SEC_NAMES[p.section_slug]||'—'}</span></div>`).join('');
-  document.getElementById('recent-pub').innerHTML=html;
+  document.getElementById('recent-pub').innerHTML=pub.map(p=>`
+    <div class="pq-item">
+      <div><div class="pq-title">${esc(p.title)}</div><div class="pq-meta">${esc(p.emp_name)}</div></div>
+      <span class="pq-sec">${SEC_NAMES[p.section_slug]||'—'}</span>
+    </div>`).join('');
 }
 
+// ── LIVE CONTENT ──────────────────────────────────────────
+let filteredPub=[];
 async function loadPublished(){
+  try{
+    let items=await SG.getPublished();
+    allPubContent=items;
+    filteredPub=items;
+    filterPublished();
+  }catch(e){document.getElementById('pub-list').innerHTML='<div class="empty">Could not load published content.</div>';}
+}
+
+function filterPublished(){
   const zone=document.getElementById('pub-zone-f')?.value||'';
   const section=document.getElementById('pub-sec-f')?.value||'';
-  try{
-    let items=await SG.getPublished();if(zone)items=items.filter(p=>p.zone_slug===zone);
-    if(section)items=items.filter(p=>p.section_slug===section);
-    if(!items.length){document.getElementById('pub-list').innerHTML='<div class="empty">No published content for this filter.</div>';return;}
-    let html=items.map(p=>`
-      <div class="pub-item" id="pi-${p.id}">
-        <div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${initials(p.emp_name)}</div>
-        <div class="pi-body">
-          <div class="pi-title">${esc(p.title)}</div>
-          <div class="pi-meta"><span class="pi-sec">${SEC_NAMES[p.section_slug]||p.section_slug}</span><span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span> <span style="font-size:11px;color:var(--mu);">P${p.priority||3} · ${esc(p.emp_name)} · ${ago(p.published_at)}</span></div>
-          <div style="font-size:12px;color:var(--mu);">${esc((p.content||'').slice(0,120))}…</div>
-        </div>
-        <button class="act act-unpub" onclick="unpub('${p.id}')" style="flex-shrink:0;font-size:12px;padding:5px 10px;">Unpublish</button>
-      </div>`).join('');
-    document.getElementById('pub-list').innerHTML=html;
-  }catch(e){
-    document.getElementById('pub-list').innerHTML='<div class="empty">Could not load published content.</div>';
-  }
+  const q=(document.getElementById('pub-search')?.value||'').toLowerCase();
+  let items=allPubContent;
+  if(zone)items=items.filter(p=>p.zone_slug===zone);
+  if(section)items=items.filter(p=>p.section_slug===section);
+  if(q)items=items.filter(p=>(p.title+p.content+p.emp_name).toLowerCase().includes(q));
+  renderPublished(items);
 }
 
-async function unpub(id){
+function renderPublished(items){
+  if(!items.length){document.getElementById('pub-list').innerHTML='<div class="empty">No published content for this filter.</div>';return;}
+  const html=items.map(p=>{
+    const imgUrl=p.extra_data&&p.extra_data.image_url;
+    return `<div class="pub-item" id="pi-${p.id}">
+      ${imgUrl?`<img src="${esc(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`:'<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${initials(p.emp_name)}</div>'}
+      <div class="pi-body">
+        <div class="pi-title">${esc(p.title)}</div>
+        <div class="pi-meta">
+          <span class="pi-sec">${SEC_NAMES[p.section_slug]||p.section_slug}</span>
+          <span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span>
+          <span style="font-size:11px;color:var(--mu);margin-left:6px;">P${p.priority||3} · ${esc(p.emp_name)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--mu);">${esc((p.content||'').slice(0,120))}…</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <button class="act act-edit" onclick="openEdit('${p.id}','published')" style="font-size:12px;padding:5px 10px;">✏️ Edit</button>
+        <button class="act act-unpub" onclick="unpubContent('${p.id}')" style="font-size:12px;padding:5px 10px;">↩ Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('pub-list').innerHTML=html;
+}
+
+async function unpubContent(id){
   if(!confirm('Remove this from the live magazine?'))return;
   try{
     await SG.unpublishContent(id);
-    document.getElementById('pi-'+id)?.remove();
-    toast('Removed from live magazine');
+    allPubContent=allPubContent.filter(p=>p.id!==id);
+    filterPublished();
+    toast('↩ Removed from live magazine');
   }catch(e){toast('❌ Failed');}
 }
 
-// ── CSV DOWNLOAD ─────────────────────────────────────────────
+// ── CSV DOWNLOAD ──────────────────────────────────────────
 function downloadCSV(){
   const zone=document.getElementById('zone-filter').value;
   const q=(document.getElementById('search-input').value||'').toLowerCase();
@@ -526,36 +755,18 @@ function downloadCSV(){
   if(currentFilter!=='all')list=list.filter(s=>s.status===currentFilter);
   if(zone)list=list.filter(s=>s.zone_slug===zone);
   if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
-
   if(!list.length){toast('No data to download.');return;}
-
-  const headers=['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted At','Admin Note'];
-  const rows=list.map(s=>[
-    s.emp_id||'',
-    s.emp_name||'',
-    ZONE_NAMES[s.zone_slug]||s.zone_slug||'',
-    (s.extra_data&&s.extra_data.branch)||s.branch||'',
-    CAT_LABELS[s.category]||s.category||'',
-    s.title||'',
-    (s.content||'').replace(/"/g,'""'),
-    s.status||'',
-    SEC_NAMES[s.section_slug]||s.section_slug||'',
-    s.priority||'',
-    s.created_at?new Date(s.created_at).toLocaleDateString('en-IN'):'',
-    s.admin_note||''
-  ]);
-
-  const csv=[headers,...rows].map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const headers=['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted','Admin Note'];
+  const rows=list.map(s=>[s.emp_id||'',s.emp_name||'',ZONE_NAMES[s.zone_slug]||s.zone_slug||'',(s.extra_data&&s.extra_data.branch)||'',CAT_LABELS[s.category]||s.category||'',s.title||'',s.content||'',s.status||'',SEC_NAMES[s.section_slug]||s.section_slug||'',s.priority||'',s.created_at?new Date(s.created_at).toLocaleDateString('en-IN'):'',s.admin_note||'']);
+  const csv=[headers,...rows].map(row=>row.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=`sarvagram-submissions-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const a=document.createElement('a');a.href=url;a.download=`sarvagram-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   toast('✅ CSV downloaded');
 }
 
+// ── NAV ───────────────────────────────────────────────────
 function showPanel(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
