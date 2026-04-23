@@ -360,30 +360,51 @@ async function unpublishContent(publishedContentId) {
   return updatePublished(publishedContentId, { is_active: false });
 }
 
-// Constants defined inside window.SG below.
-// Helpers defined inside window.SG below.
+// ── Shared constants (single source of truth) ───────────────
+
+const SECTIONS = [
+  { slug: 'hero',         name: 'Hero Slider',      max: 5 },
+  { slug: 'top-highlight', name: 'Top Highlight',   max: 1 },
+  { slug: 'whats-new',    name: "What's New",       max: 3 },
+  { slug: 'achievements', name: 'Achievements',     max: 4 },
+  { slug: 'ideas',        name: 'Ideas',            max: 4 },
+  { slug: 'spotlight',    name: 'Spotlight',        max: 2 },
+  { slug: 'on-ground',    name: 'On-Ground',        max: 4 },
+  { slug: 'quick-bytes',  name: 'Quick Bytes',      max: 5 },
+  { slug: 'zone-news',    name: 'Zone News',        max: 6 },
+];
+
+const ZONES = ['gujarat', 'karnataka', 'maharashtra', 'rajasthan', 'telangana'];
+
+const ZONE_NAMES = {
+  all: 'All Zones', gujarat: 'Gujarat', karnataka: 'Karnataka',
+  maharashtra: 'Maharashtra', rajasthan: 'Rajasthan', telangana: 'Telangana',
+};
+
+const CAT_LABELS = {
+  thought: 'Thought', idea: 'Idea', achievement: 'Achievement',
+  announcement: 'Announcement', story: 'Field Story', feedback: 'Feedback',
+};
+
+// ── Escape helpers (used across all pages) ─────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Attribute-safe escape. Use when inserting into `"..."` attributes.
+function escAttr(s) {
+  return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Only allow http(s) image URLs. Rejects javascript:, data:, file: etc.
+function safeImgUrl(u) {
+  if (!u) return '';
+  const s = String(u).trim();
+  return /^https:\/\//i.test(s) ? s : (/^http:\/\//i.test(s) ? s : '');
+}
+
 // ── Expose to window ───────────────────────────────────────
 window.SG = {
-  // ── Constants ────────────────────────────────────────────
-  SECTIONS: [
-    { slug: 'hero',          name: 'Hero Slider',    max: 5 },
-    { slug: 'top-highlight', name: 'Top Highlight',  max: 1 },
-    { slug: 'whats-new',     name: "What's New",     max: 3 },
-    { slug: 'achievements',  name: 'Achievements',   max: 4 },
-    { slug: 'ideas',         name: 'Ideas',          max: 4 },
-    { slug: 'spotlight',     name: 'Spotlight',      max: 2 },
-    { slug: 'on-ground',     name: 'On-Ground',      max: 4 },
-    { slug: 'quick-bytes',   name: 'Quick Bytes',    max: 5 },
-    { slug: 'zone-news',     name: 'Zone News',      max: 6 },
-  ],
-  ZONES: ['gujarat','karnataka','maharashtra','rajasthan','telangana'],
-  ZONE_NAMES: { all:'All Zones', gujarat:'Gujarat', karnataka:'Karnataka', maharashtra:'Maharashtra', rajasthan:'Rajasthan', telangana:'Telangana' },
-  CAT_LABELS: { thought:'Thought', idea:'Idea', achievement:'Achievement', announcement:'Announcement', story:'Field Story', feedback:'Feedback' },
-  // ── Helpers ──────────────────────────────────────────────
-  esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
-  escAttr(s){ const e=String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); return e.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); },
-  safeImgUrl(u){ if(!u)return''; const s=String(u).trim(); return /^https?:\/\//i.test(s)?s:''; },
-  // ── API ──────────────────────────────────────────────────
   // Public
   getHomepage, getPublished, getBirthdays, submitThought, getMySubmissions,
   // Admin
@@ -394,10 +415,4 @@ window.SG = {
   SECTIONS, ZONES, ZONE_NAMES, CAT_LABELS,
   // Helpers
   esc, escAttr, safeImgUrl,
-}
-
-// Global aliases — HTML files can call esc(), escAttr(), safeImgUrl() directly
-function esc(s){ return window.SG.esc(s); }
-function escAttr(s){ return window.SG.escAttr(s); }
-function safeImgUrl(u){ return window.SG.safeImgUrl(u); }
-;
+};

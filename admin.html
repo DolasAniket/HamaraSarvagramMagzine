@@ -394,7 +394,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 // admin session token (set via SG.adminLogin).
 // ═══════════════════════════════════════════════════════════
 
-const SEC_NAMES = Object.fromEntries(SG.SECTIONS.map(s => [s.slug, s.name]));
+var SEC_NAMES = Object.fromEntries(SECTIONS.map(s => [s.slug, s.name]));
 
 let allSubs = [], currentFilter = 'all', selectedIds = new Set(), allPubContent = [];
 
