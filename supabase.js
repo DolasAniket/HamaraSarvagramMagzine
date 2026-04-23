@@ -198,7 +198,7 @@ async function submitThought(data) {
   const payload = {
     emp_id,
     emp_name,
-    zone_slug: data.zone_slug || 'maharashtra',
+    zone_slug: (data.zone_slug && data.zone_slug !== 'all') ? data.zone_slug : 'maharashtra',
     category: data.category || 'thought',
     title,
     content,
