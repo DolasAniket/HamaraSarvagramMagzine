@@ -308,14 +308,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;padding:2px 0;color:var(--mu);font-size:10px;background:none;border:none;font-family:'DM Sans',sans-serif;}
 .bn-item.active{color:var(--bl);}
 .bn-icon{font-size:20px;}
-
-.see-all-inline{border-top:1px solid var(--bdr);margin-top:8px;padding-top:8px;}
-.sa-row{display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bdr);align-items:flex-start;}
-.sa-row:last-child{border-bottom:none;}
-.sa-row-icon{font-size:22px;flex-shrink:0;width:36px;height:36px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;}
-.sa-row-zone{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
-.sa-row-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;margin-bottom:2px;}
-.sa-row-meta{font-size:11px;color:var(--mu);}
 </style>
 </head>
 <body>
@@ -440,7 +432,8 @@ window.addEventListener('scroll',()=>{
         <div class="field-row">
           <div class="field"><label>Zone <span class="req">*</span></label>
             <select id="f-zone">
-              <option value="">Select your zone…</option>
+              <option value="">Select zone…</option>
+              <option value="all">All Zones</option>
               <option value="gujarat">Gujarat</option>
               <option value="karnataka">Karnataka</option>
               <option value="maharashtra">Maharashtra</option>
@@ -470,8 +463,8 @@ window.addEventListener('scroll',()=>{
 // ═══════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const ZONES = ['gujarat','karnataka','maharashtra','rajasthan','telangana'];
-const ZN = {all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
+const ZONES = SG.ZONES;
+const ZN = SG.ZONE_NAMES;
 const ZC = {gujarat:'#E65100',karnataka:'#2E7D32',maharashtra:'#1565C0',rajasthan:'#BF360C',telangana:'#4527A0'};
 const ZBG= {gujarat:'#FFF3E0',karnataka:'#E8F5E9',maharashtra:'#E3F2FD',rajasthan:'#FBE9E7',telangana:'#EDE7F6'};
 const ZCLS={gujarat:'zg',karnataka:'zk',maharashtra:'zm',rajasthan:'zr',telangana:'zt'};
@@ -829,7 +822,7 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(hlAll.length>showCount) html+=`<button class="see-more-link" data-items='${JSON.stringify(hlAll.slice(0,10)).replace(/'/g,"&apos;")}' data-type="hl" onclick="toggleSeeAll(this,'top-highlights')">See all ${hlAll.length} →</button>`;
+  if(hlAll.length>showCount) html+=`<button class="see-more-link" onclick='openSA("Top Highlights",${JSON.stringify(hlAll.slice(0,10))},"hl")'>See all ${hlAll.length} →</button>`;
   html+=`</div>`;
 
   // ── WHAT'S NEW — 5 shown, See All opens modal with up to 10
@@ -849,7 +842,7 @@ function renderAll(){
     </div>`;
   });
   html+=`</div>`;
-  if(newsAll.length>showCount) html+=`<button class="see-more-link" data-type="wn" data-items='${JSON.stringify(newsAll.slice(0,10)).replace(/'/g,"&apos;")}' onclick="toggleSeeAll(this,'whats-new')">See all ${newsAll.length} →</button>`;
+  if(newsAll.length>showCount) html+=`<button class="see-more-link" onclick='openSA("What\\'s New",${JSON.stringify(newsAll.slice(0,10))},"wn")'>See all ${newsAll.length} →</button>`;
   html+=`</div>`;
   html+=`</div>`; // close sec-twocol
 
@@ -1091,66 +1084,55 @@ function closeMM(){document.getElementById('mm-drawer').classList.remove('open')
 // ═══════════════════════════════════════════════════════════
 // SEE ALL MODAL — opens with up to 10 items
 // ═══════════════════════════════════════════════════════════
-function openSA(title, items, type){ /* legacy stub */ }
-function closeSA(){ /* legacy stub */ }
-
-function toggleSeeAll(btn, secId){
-  const existing = document.getElementById('see-all-' + secId);
-  if(existing){
-    if(existing.style.display === 'none'){
-      existing.style.display = 'block';
-      btn.textContent = 'Show less ↑';
-    } else {
-      existing.style.display = 'none';
-      btn.textContent = btn.dataset.orig;
-    }
-    return;
-  }
-  // First time — find items from data attribute
-  const items = JSON.parse(btn.dataset.items || '[]');
-  const type  = btn.dataset.type || 'hl';
-  const div   = document.createElement('div');
-  div.id = 'see-all-' + secId;
-  div.className = 'see-all-inline';
-  div.style.cssText = 'margin-top:12px;';
-  let html = '';
+function openSA(title, items, type){
+  document.getElementById('sa-title').textContent=title;
+  document.getElementById('sa-count').textContent=`(${items.length} posts)`;
+  let html='';
   items.forEach((item,i)=>{
-    const zc  = ZC[item.zone_slug] || '#666';
-    const zn  = ZN[item.zone_slug] || '';
-    const em  = EMO[item.category] || '📄';
-    if(type==='hl'||type==='wn'){
-      html += `<div class="sa-row">
-        <div class="sa-row-icon">${em}</div>
+    if(type==='hl'){
+      const zc=ZC[item.zone_slug]||'#666';
+      html+=`<div class="sa-item">
+        <div class="sa-thumb ${GRADS[i%5]}">${EMO[item.category]||'📄'}</div>
         <div>
-          <div class="sa-row-zone" style="color:${zc};">${esc(zn)}</div>
-          <div class="sa-row-title">${esc(item.title)}</div>
-          <div class="sa-row-meta">${esc(item.emp_name||'')} · ${ago(item.published_at||new Date())}</div>
+          <div class="sa-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+          <div class="sa-title-item">${esc(item.title)}</div>
+          <div class="sa-meta">${esc(item.emp_name)} · ${ago(item.published_at||new Date())}</div>
+        </div>
+      </div>`;
+    } else if(type==='wn'){
+      const zc=ZC[item.zone_slug]||'#666';
+      html+=`<div class="sa-wn">
+        <div class="sa-wn-img ${GRADS[(i+2)%5]}">${EMO[item.category]||'📄'}</div>
+        <div>
+          <div class="sa-tag" style="color:${zc};">${ZN[item.zone_slug]||''}</div>
+          <div class="sa-title-item">${esc(item.title)}</div>
+          <div class="sa-meta">${esc(item.emp_name)}${item.content?' · '+esc((item.content||'').slice(0,80))+'…':''}</div>
         </div>
       </div>`;
     } else if(type==='ach'){
-      html += `<div class="sa-row">
-        <div class="sa-row-icon">🏅</div>
-        <div>
-          <div class="sa-row-zone" style="color:${zc};">${esc(zn)}</div>
-          <div class="sa-row-title">${esc(item.emp_name||item.title||'')}</div>
-          <div class="sa-row-meta">${esc((item.content||'').slice(0,100))}</div>
-        </div>
+      const zc=ZC[item.zone_slug]||'var(--gr-d)';
+      const zbg=ZBG[item.zone_slug]||'var(--gr-l)';
+      html+=`<div class="sa-ach">
+        <div class="sa-pill" style="background:${zbg};color:${zc};">🏅 ${ZN[item.zone_slug]||''}</div>
+        <div class="sa-title-item">${esc(item.emp_name)}</div>
+        <div class="sa-meta">${esc(item.content)}</div>
       </div>`;
     } else if(type==='idea'){
-      html += `<div class="sa-row">
-        <div class="sa-row-icon">💡</div>
-        <div>
-          <div class="sa-row-zone" style="color:${zc};">${esc(zn)}</div>
-          <div class="sa-row-title">${esc(item.title||'')}</div>
-          <div class="sa-row-meta">${esc((item.content||'').slice(0,100))}</div>
-        </div>
+      const zc=ZC[item.zone_slug]||'var(--bl)';
+      html+=`<div class="sa-ach">
+        <div class="sa-pill" style="background:var(--bl-l);color:${zc};">💡 ${ZN[item.zone_slug]||''}</div>
+        <div class="sa-title-item">${esc(item.title)}</div>
+        <div class="sa-meta">${esc(item.content)} — <em>${esc(item.emp_name)}</em></div>
       </div>`;
     }
   });
-  div.innerHTML = html || '<div style="padding:12px;color:var(--mu);font-size:13px;">No more items.</div>';
-  btn.dataset.orig = btn.textContent;
-  btn.textContent = 'Show less ↑';
-  btn.after(div);
+  document.getElementById('sa-body').innerHTML=html||'<div class="empty">No more items.</div>';
+  document.getElementById('sa-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeSA(){
+  document.getElementById('sa-overlay').classList.remove('show');
+  document.body.style.overflow='';
 }
 
 // ═══════════════════════════════════════════════════════════
