@@ -399,19 +399,20 @@ function escAttr(s) {
 // Only allow http(s) image URLs. Rejects javascript:, data:, file: etc.
 function safeImgUrl(u) {
   if (!u) return '';
-  let s = String(u).trim();
-  // Convert Google Drive share links to direct image URLs
-  const driveMatch = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (driveMatch) {
-    return 'https://drive.google.com/uc?export=view&id=' + driveMatch[1];
-  }
-  return /^https?:\/\//i.test(s) ? s : '';
+  const s = String(u).trim();
+  return /^https:\/\//i.test(s) ? s : (/^http:\/\//i.test(s) ? s : '');
 }
 
 // ── Expose to window ───────────────────────────────────────
+
+async function insertPublished(data) {
+  return sb.insert('published_content', data);
+}
+
 window.SG = {
   // Public
   getHomepage, getPublished, getBirthdays, submitThought, getMySubmissions,
+  insertPublished,
   // Admin
   getAllSubmissions, getAllPublished, updateSubmission, updatePublished,
   publishSubmission, unpublishSubmission, unpublishContent,

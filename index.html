@@ -330,6 +330,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
   <div style="flex:1;"></div>
   <div class="hdr-right">
     <button class="btn-sf" onclick="openModal()">+ Submit Your Thought</button>
+    <a href="mysubs.html" style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8);text-decoration:none;padding:5px 12px;border:1px solid rgba(255,255,255,.3);border-radius:20px;white-space:nowrap;transition:all .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.8)'">My Submissions</a>
     <button class="ham" onclick="openMM()"><span></span><span></span><span></span></button>
   </div>
 </header>
@@ -464,8 +465,8 @@ window.addEventListener('scroll',()=>{
 // ═══════════════════════════════════════════════════════════
 // ZONES is a global from supabase.js
 var ZN = SG.ZONE_NAMES;
-const ZC = {gujarat:'#E65100',karnataka:'#2E7D32',maharashtra:'#1565C0',rajasthan:'#BF360C',telangana:'#4527A0'};
-const ZBG= {gujarat:'#FFF3E0',karnataka:'#E8F5E9',maharashtra:'#E3F2FD',rajasthan:'#FBE9E7',telangana:'#EDE7F6'};
+const ZC = {all:'#2B398E',gujarat:'#E65100',karnataka:'#2E7D32',maharashtra:'#1565C0',rajasthan:'#BF360C',telangana:'#4527A0'};
+const ZBG= {all:'#E8EBFB',gujarat:'#FFF3E0',karnataka:'#E8F5E9',maharashtra:'#E3F2FD',rajasthan:'#FBE9E7',telangana:'#EDE7F6'};
 const ZCLS={gujarat:'zg',karnataka:'zk',maharashtra:'zm',rajasthan:'zr',telangana:'zt'};
 const EMO ={story:'🌾',achievement:'🏅',idea:'💡',announcement:'📣',thought:'💬',feedback:'⭐'};
 const GRADS=['tg1','tg2','tg3','tg4','tg5'];
