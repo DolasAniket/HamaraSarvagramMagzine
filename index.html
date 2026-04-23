@@ -696,7 +696,11 @@ function buildHero(){
   // Hero slides: admin-pinned 'hero' section takes priority, falls back to demo.
   // Note: `title` is plain text; `titleHtml` (if present) is trusted HTML allowed
   // only on hardcoded demo rows. Live rows never set titleHtml.
-  const liveHero = liveBySection('hero').slice(0,5);
+  // Hero posts flagged via extra_data.is_hero (section_slug unchanged)
+  const liveHero = allPublished
+    .filter(p => p.is_active !== false && p.extra_data && p.extra_data.is_hero)
+    .sort((a,b) => ((a.extra_data&&a.extra_data.hero_order)||99) - ((b.extra_data&&b.extra_data.hero_order)||99))
+    .slice(0,5);
   const slides = liveHero.length > 0
     ? liveHero.map(l=>({
         zone:l.zone_slug,
@@ -891,8 +895,8 @@ function renderAll(){
   html+=`<div class="qb-card"><div class="qb-hd">Quick Bytes</div>`;
   if(Array.isArray(qb)&&qb.length){
     qb.forEach((q,i)=>{
-      const zn=ZN[q.zone||q.zone_slug]||'';
-      const zc=ZC[q.zone||q.zone_slug]||'rgba(255,255,255,.6)';
+      const zn=ZN[q.zone||q.zone_slug]||ZN[q.zone_slug]||'';
+      const zc=ZC[q.zone||q.zone_slug]||(q.zone==='all'||q.zone_slug==='all'?'#FFD54F':'rgba(255,255,255,.7)');
       const txt=q.title_raw||q.title||q.content||'';
       html+=`<div class="qb-item">
         <div class="qb-num">${i+1}</div>

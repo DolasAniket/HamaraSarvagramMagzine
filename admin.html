@@ -3,1002 +3,426 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin — Hamara SarvaGram</title>
+<title>Submit — Hamara SarvaGram</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--sf:#F47920;--sf-l:#FEF0E6;--bl:#2B398E;--bl-m:#3D52B8;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--red:#C62828;--red-l:#FFEBEE;--r:12px;}
+:root{--sf:#F47920;--sf-d:#C9601A;--sf-l:#FEF0E6;--bl:#2B398E;--bl-l:#E8EBFB;--gr:#8DC63F;--gr-d:#5E8F1E;--gr-l:#EDF7D6;--bg:#F0F2F8;--ink:#1A1A1A;--mu:#6B6B73;--card:#fff;--bdr:rgba(43,57,142,0.1);--radius:12px;}
 body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
+.nav{position:sticky;top:0;z-index:500;background:var(--bl);display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;box-shadow:0 2px 16px rgba(0,0,0,.2);}
+.nav-brand{font-family:'Playfair Display',serif;font-size:17px;color:#fff;font-weight:700;text-decoration:none;}
+.nav-links{display:flex;gap:2px;}
+.nav-link{color:rgba(255,255,255,.75);font-size:13px;font-weight:500;padding:6px 12px;border-radius:20px;text-decoration:none;transition:all .15s;}
+.nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,.12);}
+.hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:4px;}
+.hamburger span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;}
+@media(max-width:700px){.nav-links{display:none;}.hamburger{display:flex;}}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;}
+.overlay.show{display:block;}
+.mm{position:fixed;top:0;right:0;width:220px;height:100vh;background:var(--bl);z-index:450;transform:translateX(100%);transition:transform .3s;padding:16px 0;}
+.mm.open{transform:none;}
+.mm-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 16px;margin-bottom:12px;display:block;margin-left:auto;}
+.mm-item{color:rgba(255,255,255,.8);font-size:14px;padding:10px 20px;text-decoration:none;display:block;}
+.mm-item:hover{color:#fff;background:rgba(255,255,255,.1);}
 
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bl);padding:20px;}
-.login-box{background:var(--card);border-radius:16px;padding:36px 32px;max-width:380px;width:100%;text-align:center;}
-.login-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--bl);font-weight:700;margin-bottom:4px;}
-.login-sub{font-size:13px;color:var(--mu);margin-bottom:28px;}
-.lfield{text-align:left;margin-bottom:16px;}
-.lfield label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
-.lfield input{width:100%;padding:11px 14px;border:1px solid rgba(0,0,0,.12);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;outline:none;}
-.lfield input:focus{border-color:var(--bl);}
-.login-btn{width:100%;padding:12px;border-radius:8px;background:var(--bl);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;}
-.login-btn:hover{background:var(--bl-m);}
-.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
-.login-note{font-size:11px;color:var(--mu);margin-top:16px;line-height:1.5;}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 80px;}
+.pg-head{text-align:center;padding:20px 0 22px;}
+.pg-head h1{font-family:'Playfair Display',serif;font-size:26px;color:var(--bl);font-weight:700;margin-bottom:5px;}
+.pg-head p{font-size:13px;color:var(--mu);line-height:1.5;}
 
-/* SHELL */
-.admin-shell{display:none;min-height:100vh;}
-.admin-nav{background:var(--bl);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.2);}
-.an-brand{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;display:flex;align-items:center;gap:8px;}
-.admin-badge{background:var(--red);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;}
-.an-tabs{display:flex;gap:2px;}
-.an-tab{color:rgba(255,255,255,.7);font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;border:none;background:none;font-family:'Mukta',sans-serif;transition:all .15s;}
-.an-tab:hover,.an-tab.active{color:#fff;background:rgba(255,255,255,.12);}
-.logout-btn{color:rgba(255,255,255,.6);font-size:13px;background:none;border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Mukta',sans-serif;}
-.logout-btn:hover{color:#fff;}
-@media(max-width:640px){.an-tabs{display:none;}}
-.mobile-tabs{display:none;background:var(--card);border-bottom:1px solid var(--bdr);overflow-x:auto;}
-@media(max-width:640px){.mobile-tabs{display:flex;}}
-.mt-tab{flex:1;padding:10px 8px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;font-family:'Mukta',sans-serif;color:var(--mu);border-bottom:3px solid transparent;white-space:nowrap;}
-.mt-tab.active{color:var(--bl);border-bottom-color:var(--bl);}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:400px){.cat-grid{grid-template-columns:repeat(2,1fr);}}
+.cat-card{border:1.5px solid var(--bdr);border-radius:var(--radius);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;background:var(--card);}
+.cat-card:hover{border-color:var(--bl);background:var(--bl-l);}
+.cat-card.sel{border-color:var(--bl);background:var(--bl);}
+.cat-card.sel .cat-label{color:#fff;}
+.cat-icon{font-size:26px;margin-bottom:5px;display:block;}
+.cat-label{font-size:12px;font-weight:600;color:var(--ink);}
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bl-m);}
-@media(max-width:500px){.stats-row{grid-template-columns:repeat(3,1fr);}}
-.astat{padding:12px 8px;text-align:center;border-right:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .15s;}
-.astat:hover{background:rgba(255,255,255,.1);}
-.astat:last-child{border-right:none;}
-.astat-n{font-size:20px;font-weight:700;color:#fff;}
-.astat-l{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;}
-.n-pend{color:#FFD54F;}.n-app{color:#90CAF9;}.n-pub{color:#A5D6A7;}.n-rej{color:#EF9A9A;}
+.fcard{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:18px;margin-bottom:14px;}
+.fcard-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--bdr);}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.field label .req{color:var(--sf);}
+.field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1px solid rgba(0,0,0,.12);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;color:var(--ink);background:var(--bg);outline:none;transition:border .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--bl);background:#fff;box-shadow:0 0 0 3px rgba(43,57,142,.1);}
+.field textarea{resize:vertical;line-height:1.55;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.field-row{grid-template-columns:1fr;}}
+.wc{font-size:11px;color:var(--mu);text-align:right;margin-top:3px;}
+.hint{font-size:11px;color:var(--mu);margin-top:3px;line-height:1.4;}
+.upload-z{border:1.5px dashed rgba(0,0,0,.15);border-radius:8px;padding:16px;text-align:center;cursor:pointer;background:var(--bg);transition:all .2s;}
+.upload-z:hover{border-color:var(--sf);background:var(--sf-l);}
+.uz-icon{font-size:22px;margin-bottom:3px;}
+.uz-text{font-size:13px;color:var(--mu);}
+.uz-name{font-size:12px;color:var(--gr-d);font-weight:600;margin-top:3px;}
+.star-row{display:flex;gap:8px;}
+.star{font-size:28px;color:#ddd;cursor:pointer;transition:color .15s;user-select:none;}
+.star.on{color:var(--sf);}
+.mood-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.mpill{padding:5px 14px;border-radius:20px;border:1px solid var(--bdr);background:var(--card);font-size:12px;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;color:var(--ink);}
+.mpill.sel{background:var(--bl);color:#fff;border-color:var(--bl);}
+.form-variant{display:none;}
+.form-variant.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none;}
+.alert.err{background:#FFEBEE;color:#C62828;}
+.alert.show{display:block;}
+.btn-sf{width:100%;padding:13px;border-radius:var(--radius);background:var(--sf);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;letter-spacing:.02em;}
+.btn-sf:hover{background:var(--sf-d);}
+.btn-sf:disabled{background:#bbb;cursor:default;}
+.form-note{text-align:center;font-size:12px;color:var(--mu);margin-top:10px;line-height:1.5;}
 
-/* PANELS */
-.panel{display:none;padding:16px;max-width:1100px;margin:0 auto;}
-.panel.active{display:block;}
+/* Honeypot: off-screen, invisible to humans, caught by spam bots */
+.hp-field{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;}
 
-/* FILTER BAR */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
-.fb-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--card);cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;color:var(--ink);}
-.fb-btn:hover,.fb-btn.active{background:var(--bl);color:#fff;border-color:var(--bl);}
-.fb-sel{padding:6px 12px;border-radius:20px;font-size:13px;border:1px solid var(--bdr);background:var(--card);font-family:'Mukta',sans-serif;outline:none;color:var(--ink);}
-.fb-search{flex:1;min-width:140px;padding:7px 14px;border:1px solid var(--bdr);border-radius:20px;font-size:13px;font-family:'Mukta',sans-serif;outline:none;}
-.dl-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid var(--bdr);background:var(--gr-l);color:var(--gr-d);cursor:pointer;font-family:'Mukta',sans-serif;white-space:nowrap;}
-.dl-btn:hover{background:var(--gr);color:#fff;}
+.success-box{display:none;text-align:center;padding:48px 20px;}
+.suc-icon{font-size:60px;margin-bottom:16px;}
+.suc-title{font-family:'Playfair Display',serif;font-size:26px;color:var(--gr-d);font-weight:700;margin-bottom:8px;}
+.suc-msg{font-size:14px;color:var(--mu);line-height:1.6;max-width:300px;margin:0 auto 16px;}
+.suc-ref{background:var(--gr-l);border-radius:8px;padding:8px 20px;display:inline-block;font-size:13px;font-weight:700;color:var(--gr-d);margin-bottom:20px;}
+.btn-bl{padding:10px 24px;border-radius:var(--radius);background:var(--bl);color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;text-decoration:none;display:inline-block;}
 
-/* BULK ACTIONS BAR */
-.bulk-bar{background:var(--bl-l);border-radius:10px;padding:10px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap;}
-.bulk-bar.show{display:flex;}
-.bulk-count{font-size:13px;font-weight:700;color:var(--bl);}
-.bulk-act{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;}
-.ba-app{background:var(--gr-l);color:var(--gr-d);}
-.ba-app:hover{background:var(--gr);color:#fff;}
-.ba-rej{background:var(--red-l);color:var(--red);}
-.ba-rej:hover{background:var(--red);color:#fff;}
-.ba-clr{background:none;color:var(--mu);border:1px solid var(--bdr);}
-
-/* REVIEW CARDS */
-.rev-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:16px;margin-bottom:10px;transition:box-shadow .2s;}
-.rev-card:hover{box-shadow:0 4px 16px rgba(43,57,142,.1);}
-.rev-card.selected{border-color:var(--bl);background:#fafbff;}
-.rc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
-.rc-cb{width:18px;height:18px;border:2px solid var(--bdr);border-radius:4px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--bl);}
-.rc-av{width:36px;height:36px;border-radius:50%;background:var(--bl-l);color:var(--bl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
-.rc-info{flex:1;}
-.rc-name{font-size:14px;font-weight:700;}
-.rc-meta{font-size:11px;color:var(--mu);margin-top:1px;}
-.rc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700;white-space:nowrap;}
-.rs-pend{background:#FFF3E0;color:#E65100;}
-.rs-app{background:#E3F2FD;color:#1565C0;}
-.rs-pub{background:var(--gr-l);color:var(--gr-d);}
-.rs-rej{background:var(--red-l);color:var(--red);}
-.rs-unp{background:#EEE;color:#666;}
-.rc-content{font-size:13px;color:var(--ink);line-height:1.5;background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:10px;}
-.rc-img{max-width:100%;max-height:120px;border-radius:8px;margin-bottom:8px;display:block;}
-.rc-title{font-weight:700;font-size:14px;margin-bottom:4px;}
-.rc-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.act{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'Mukta',sans-serif;transition:all .15s;}
-.act:disabled{opacity:.5;cursor:default;}
-.act-app{background:var(--gr-l);color:var(--gr-d);}
-.act-app:hover:not(:disabled){background:var(--gr);color:#fff;}
-.act-rej-btn{background:var(--red-l);color:var(--red);}
-.act-rej-btn:hover:not(:disabled){background:var(--red);color:#fff;}
-.act-pub{background:var(--bl);color:#fff;}
-.act-pub:hover:not(:disabled){background:var(--bl-m);}
-.act-edit{background:var(--sf-l);color:#C9601A;}
-.act-edit:hover{background:var(--sf);color:#fff;}
-.act-unpub{background:#EEE;color:var(--mu);}
-.act-unpub:hover{background:#DDD;}
-.act-restore{background:var(--gr-l);color:var(--gr-d);}
-.act-restore:hover{background:var(--gr);color:#fff;}
-.rc-sel{padding:5px 10px;border-radius:20px;font-size:12px;border:1px solid var(--bdr);background:var(--card);font-family:'Mukta',sans-serif;outline:none;cursor:pointer;}
-.pdots{display:flex;gap:4px;align-items:center;}
-.pdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--bdr);cursor:pointer;background:var(--bg);transition:all .15s;}
-.pdot.p1.on{background:var(--gr);border-color:var(--gr);}
-.pdot.p2.on{background:var(--sf);border-color:var(--sf);}
-.pdot.p3.on{background:var(--red);border-color:var(--red);}
-.rej-box{margin-top:8px;display:none;}
-.rej-box textarea{width:100%;padding:8px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:'Mukta',sans-serif;resize:none;outline:none;margin-bottom:6px;}
-.rej-confirm{padding:6px 14px;border-radius:8px;background:var(--red);color:#fff;border:none;cursor:pointer;font-family:'Mukta',sans-serif;font-size:13px;font-weight:600;}
-
-/* EDIT MODAL */
-.edit-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:16px;}
-.edit-overlay.show{display:flex;}
-.edit-modal{background:var(--card);border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:24px;}
-.em-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.em-title{font-size:18px;font-weight:700;color:var(--bl);}
-.em-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--mu);}
-.em-field{margin-bottom:14px;}
-.em-field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
-.em-field input,.em-field select,.em-field textarea{width:100%;padding:10px 13px;border:1px solid var(--bdr);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;outline:none;background:var(--bg);}
-.em-field input:focus,.em-field select:focus,.em-field textarea:focus{border-color:var(--bl);background:#fff;}
-.em-field textarea{resize:vertical;min-height:80px;line-height:1.5;}
-.em-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.em-save{width:100%;padding:12px;border-radius:8px;background:var(--bl);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;margin-top:4px;}
-.em-save:hover{background:var(--bl-m);}
-
-/* PUBLISH PANEL */
-.pub-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;}
-@media(max-width:800px){.pub-grid{grid-template-columns:1fr;}}
-.panel-card{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:16px;}
-.pc-title{font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bdr);}
-.cap-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.cap-name{font-size:13px;font-weight:600;width:120px;flex-shrink:0;}
-.cap-bar-wrap{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
-.cap-bar{height:100%;border-radius:4px;transition:width .4s;}
-.cap-full{background:var(--gr);}.cap-mid{background:var(--sf);}.cap-empty{background:var(--bdr);}
-.cap-count{font-size:11px;color:var(--mu);width:36px;text-align:right;}
-.pq-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr);}
-.pq-item:last-child{border-bottom:none;}
-.pq-title{flex:1;font-size:13px;font-weight:600;line-height:1.3;}
-.pq-meta{font-size:11px;color:var(--mu);}
-.pq-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;}
-
-/* PUBLISHED */
-.pub-item{background:var(--card);border-radius:var(--r);border:.5px solid var(--bdr);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
-.pi-body{flex:1;}
-.pi-title{font-size:14px;font-weight:700;margin-bottom:3px;}
-.pi-meta{font-size:11px;color:var(--mu);margin:4px 0 6px;}
-.pi-sec{font-size:10px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:8px;font-weight:600;}
-.pi-zone{font-size:10px;background:var(--sf-l);color:#C9601A;padding:2px 7px;border-radius:8px;font-weight:600;margin-left:4px;}
-.pi-img{width:60px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0;}
-
-/* UTILS */
-.loader{text-align:center;padding:32px;color:var(--mu);}
-.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--bl);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.empty{text-align:center;padding:40px;color:var(--mu);font-size:13px;}
-.toast{position:fixed;bottom:24px;right:20px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:1000;}
-.toast.show{display:block;animation:slideUp .25s ease;}
-@keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-.prio-bar{display:flex;align-items:center;gap:6px;}
-.prio-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.prio-btn:hover{background:var(--bl-l);}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bdr);padding:6px 0 10px;z-index:300;}
+@media(max-width:700px){.bottom-nav{display:flex;}body{padding-bottom:64px;}}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;padding:2px 0;color:var(--mu);font-size:10px;background:none;border:none;font-family:'Mukta',sans-serif;}
+.bn-item.active{color:var(--bl);}
+.bn-icon{font-size:20px;}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="login-screen" class="login-wrap">
-  <div class="login-box">
-    <div class="login-logo">Hamara SarvaGram</div>
-    <div class="login-sub">Editorial Admin Panel · Restricted Access</div>
-    <div class="lfield"><label>Admin Password</label><input type="password" id="pw-input" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
-    <div class="login-err" id="login-err">Incorrect password. Please try again.</div>
-    <div class="login-note">This panel is for authorised editorial staff only.</div>
-    <a href="index.html" style="display:inline-block;margin-top:14px;font-size:12px;color:var(--bl);text-decoration:none;font-weight:600;">← Back to Magazine</a>
-  </div>
+<div class="overlay" id="overlay" onclick="closeMM()"></div>
+<div class="mm" id="mm">
+  <button class="mm-x" onclick="closeMM()">✕</button>
+  <a class="mm-item" href="index.html">📰 Magazine</a>
+  <a class="mm-item" href="submit.html">✏️ Submit Thought</a>
+  <a class="mm-item" href="mysubs.html">📋 My Submissions</a>
 </div>
 
-<!-- ADMIN SHELL -->
-<div id="admin-shell" class="admin-shell">
-  <nav class="admin-nav">
-    <div class="an-brand">SG Admin <span class="admin-badge">ADMIN</span></div>
-    <div class="an-tabs">
-      <button class="an-tab active" onclick="showPanel('review',this)">📋 Review</button>
-      <button class="an-tab" onclick="showPanel('publish',this)">🚀 Publish Control</button>
-      <button class="an-tab" onclick="showPanel('published',this)">📰 Live Content</button>
-      <button class="an-tab" onclick="showPanel('hero',this)">🎯 Hero Slider</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <a href="index.html" style="color:rgba(255,255,255,.75);font-size:13px;text-decoration:none;padding:5px 12px;border:1px solid rgba(255,255,255,.2);border-radius:20px;transition:all .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.75)'">← Magazine</a>
-      <button class="logout-btn" onclick="SG.adminLogout()">Sign Out</button>
-    </div>
-  </nav>
-  <div class="mobile-tabs">
-    <button class="mt-tab active" onclick="showPanel('review',this)">📋 Review</button>
-    <button class="mt-tab" onclick="showPanel('publish',this)">🚀 Publish</button>
-    <button class="mt-tab" onclick="showPanel('published',this)">📰 Live</button>
-    <button class="mt-tab" onclick="showPanel('hero',this)">🎯 Hero</button>
+<nav class="nav">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="hamburger" onclick="openMM()" aria-label="Open menu"><span></span><span></span><span></span></button>
+    <a class="nav-brand" href="index.html">Hamara SarvaGram</a>
   </div>
-  <div class="stats-row">
-    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('all',document.querySelectorAll('#panel-review .fb-btn')[0])" style="cursor:pointer;" title="View all submissions">
-      <div class="astat-n" id="st-total">—</div><div class="astat-l">Total</div>
-    </div>
-    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('pending',document.querySelectorAll('#panel-review .fb-btn')[1])" style="cursor:pointer;" title="View pending">
-      <div class="astat-n n-pend" id="st-pend">—</div><div class="astat-l">Pending</div>
-    </div>
-    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('approved',document.querySelectorAll('#panel-review .fb-btn')[2])" style="cursor:pointer;" title="View approved">
-      <div class="astat-n n-app" id="st-app">—</div><div class="astat-l">Approved</div>
-    </div>
-    <div class="astat" onclick="showPanel('published',document.querySelectorAll('.an-tab')[2])" style="cursor:pointer;" title="View published">
-      <div class="astat-n n-pub" id="st-pub">—</div><div class="astat-l">Published</div>
-    </div>
-    <div class="astat" onclick="showPanel('review',document.querySelector('.an-tab'));filterSubs('rejected',document.querySelectorAll('#panel-review .fb-btn')[3])" style="cursor:pointer;" title="View rejected">
-      <div class="astat-n n-rej" id="st-rej">—</div><div class="astat-l">Rejected</div>
-    </div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Magazine</a>
+    <a class="nav-link active" href="submit.html">Submit</a>
+    <a class="nav-link" href="mysubs.html">My Submissions</a>
   </div>
+</nav>
 
-  <!-- REVIEW -->
-  <div class="panel active" id="panel-review">
-    <div class="filter-bar">
-      <button class="fb-btn active" onclick="filterSubs('all',this)">All</button>
-      <button class="fb-btn" onclick="filterSubs('pending',this)">Pending</button>
-      <button class="fb-btn" onclick="filterSubs('approved',this)">Approved</button>
-      <button class="fb-btn" onclick="filterSubs('rejected',this)">Rejected</button>
-      <button class="fb-btn" onclick="filterSubs('unpublished',this)">Unpublished</button>
-      <select class="fb-sel" id="zone-filter" onchange="applyFilters()">
-        <option value="">All Zones</option>
-        <option value="gujarat">Gujarat</option>
-        <option value="karnataka">Karnataka</option>
-        <option value="maharashtra">Maharashtra</option>
-        <option value="rajasthan">Rajasthan</option>
-        <option value="telangana">Telangana</option>
-      </select>
-      <input type="text" class="fb-search" id="search-input" placeholder="Search by name, keyword…" oninput="applyFilters()"/>
-      <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
+<div class="wrap">
+  <div id="form-area">
+    <div class="pg-head">
+      <h1>Share Your Thought</h1>
+      <p>Choose a category — the form adjusts to what you want to share. Reviewed by the editorial team before publishing.</p>
     </div>
-    <div class="bulk-bar" id="bulk-bar">
-      <span class="bulk-count" id="bulk-count">0 selected</span>
-      <button class="bulk-act ba-app" onclick="bulkApprove()">✓ Approve All</button>
-      <button class="bulk-act ba-rej" onclick="bulkReject()">✗ Reject All</button>
-      <button class="bulk-act ba-clr" onclick="clearSelection()">Clear</button>
-    </div>
-    <div id="review-list"><div class="loader"><span class="spinner"></span>Loading…</div></div>
-  </div>
+    <div class="alert err" id="err-box"></div>
 
-  <!-- PUBLISH CONTROL -->
-  <div class="panel" id="panel-publish">
-    <div class="pub-grid">
-      <div>
-        <div class="panel-card">
-          <div class="pc-title">📊 Section Fill Levels</div>
-          <div id="cap-bars"><div class="loader"><span class="spinner"></span></div></div>
-        </div>
-        <div style="margin-top:16px;">
-          <div class="panel-card">
-            <div class="pc-title">⚡ Approved — Ready to Publish</div>
-            <div id="ready-queue"><div class="loader"><span class="spinner"></span></div></div>
-          </div>
-        </div>
+    <!-- HONEYPOT: humans don't see this. Bots fill every input. -->
+    <div class="hp-field" aria-hidden="true">
+      <label for="website-url">Leave this field empty</label>
+      <input type="text" id="website-url" name="website-url" tabindex="-1" autocomplete="off"/>
+    </div>
+
+    <!-- IDENTITY -->
+    <div class="fcard">
+      <div class="fcard-title">Your Details</div>
+      <div class="field-row">
+        <div class="field"><label>Employee ID <span class="req">*</span></label><input type="text" id="f-empid" placeholder="e.g. EMP-1042" maxlength="40"/></div>
+        <div class="field"><label>Your Name <span class="req">*</span></label><input type="text" id="f-name" placeholder="Full name" maxlength="100"/></div>
       </div>
-      <div class="panel-card">
-        <div class="pc-title">📋 Recently Published</div>
-        <div id="recent-pub"><div class="loader"><span class="spinner"></span></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- LIVE CONTENT -->
-  <div class="panel" id="panel-published">
-    <div class="filter-bar">
-      <select class="fb-sel" id="pub-zone-f" onchange="loadPublished()">
-        <option value="">All Zones</option>
-        <option value="gujarat">Gujarat</option>
-        <option value="karnataka">Karnataka</option>
-        <option value="maharashtra">Maharashtra</option>
-        <option value="rajasthan">Rajasthan</option>
-        <option value="telangana">Telangana</option>
-      </select>
-      <select class="fb-sel" id="pub-sec-f" onchange="loadPublished()">
-        <option value="">All Sections</option>
-        <option value="top-highlight">Top Highlight</option>
-        <option value="whats-new">What's New</option>
-        <option value="achievements">Achievements</option>
-        <option value="ideas">Ideas</option>
-        <option value="spotlight">Spotlight</option>
-        <option value="on-ground">On-Ground</option>
-        <option value="quick-bytes">Quick Bytes</option>
-        <option value="zone-news">Zone News</option>
-      </select>
-      <input type="text" class="fb-search" id="pub-search" placeholder="Search live content…" oninput="filterPublished()"/>
-    </div>
-    <div id="pub-list"><div class="loader"><span class="spinner"></span></div></div>
-  </div>
-
-  <!-- HERO SLIDER MANAGEMENT -->
-  <div class="panel" id="panel-hero">
-    <div style="max-width:700px;">
-      <div class="panel-card" style="margin-bottom:16px;">
-        <div class="pc-title">🎯 Hero Slider — Current Slides</div>
-        <p style="font-size:12px;color:var(--mu);margin-bottom:14px;">Up to 5 slides. Each slide is a published post pinned to the <strong>Hero</strong> section. Drag to reorder, or remove and re-add.</p>
-        <div id="hero-slides-list"><div class="loader"><span class="spinner"></span></div></div>
-      </div>
-      <div class="panel-card">
-        <div class="pc-title">➕ Add Post to Hero</div>
-        <p style="font-size:12px;color:var(--mu);margin-bottom:14px;">Choose any published post to feature in the hero slider.</p>
-        <div class="filter-bar" style="margin-bottom:12px;">
-          <select class="fb-sel" id="hero-zone-f" onchange="filterHeroQueue()">
-            <option value="">All Zones</option>
+      <div class="field-row">
+        <div class="field">
+          <label>Zone <span class="req">*</span></label>
+          <select id="f-zone">
+            <option value="">Select zone…</option>
             <option value="gujarat">Gujarat</option>
             <option value="karnataka">Karnataka</option>
             <option value="maharashtra">Maharashtra</option>
             <option value="rajasthan">Rajasthan</option>
             <option value="telangana">Telangana</option>
           </select>
-          <input type="text" class="fb-search" id="hero-search" placeholder="Search by title or author…" oninput="filterHeroQueue()" style="flex:1;"/>
         </div>
-        <div id="hero-queue-list"><div class="loader"><span class="spinner"></span></div></div>
+        <div class="field"><label>Branch (optional)</label><input type="text" id="f-branch" placeholder="e.g. Nashik, Dharwad" maxlength="100"/></div>
       </div>
     </div>
+
+    <!-- CATEGORY -->
+    <div class="fcard">
+      <div class="fcard-title">Choose Category <span class="req">*</span></div>
+      <div class="cat-grid">
+        <div class="cat-card sel" data-cat="thought" onclick="selCat(this)"><span class="cat-icon">💬</span><span class="cat-label">Thought</span></div>
+        <div class="cat-card" data-cat="idea" onclick="selCat(this)"><span class="cat-icon">💡</span><span class="cat-label">Idea</span></div>
+        <div class="cat-card" data-cat="achievement" onclick="selCat(this)"><span class="cat-icon">🏅</span><span class="cat-label">Achievement</span></div>
+        <div class="cat-card" data-cat="announcement" onclick="selCat(this)"><span class="cat-icon">📣</span><span class="cat-label">Announcement</span></div>
+        <div class="cat-card" data-cat="story" onclick="selCat(this)"><span class="cat-icon">📸</span><span class="cat-label">Field Story</span></div>
+        <div class="cat-card" data-cat="feedback" onclick="selCat(this)"><span class="cat-icon">⭐</span><span class="cat-label">Feedback</span></div>
+      </div>
+    </div>
+
+    <!-- THOUGHT -->
+    <div class="form-variant active" id="fv-thought">
+      <div class="fcard">
+        <div class="fcard-title">💬 Your Thought</div>
+        <div class="field"><label>Headline <span class="req">*</span></label><input type="text" id="t-title" placeholder="Give your thought a short title" maxlength="200"/></div>
+        <div class="field"><label>Write freely <span class="req">*</span></label><textarea id="t-body" rows="5" placeholder="Share a moment, feeling, or message." maxlength="5000" oninput="wc(this,'t-wc',150)"></textarea><div class="wc" id="t-wc">0 / 150 words</div></div>
+        <div class="field"><label>Mood</label><div class="mood-pills"><button class="mpill sel" onclick="selPill(this)">Inspiring</button><button class="mpill" onclick="selPill(this)">Reflective</button><button class="mpill" onclick="selPill(this)">Humorous</button><button class="mpill" onclick="selPill(this)">Grateful</button><button class="mpill" onclick="selPill(this)">Hopeful</button></div></div>
+      </div>
+    </div>
+
+    <!-- IDEA -->
+    <div class="form-variant" id="fv-idea">
+      <div class="fcard">
+        <div class="fcard-title">💡 Your Idea</div>
+        <div class="field"><label>Idea Title <span class="req">*</span></label><input type="text" id="i-title" placeholder="Clear, concise title" maxlength="200"/></div>
+        <div class="field"><label>Problem it solves <span class="req">*</span></label><textarea rows="3" id="i-problem" placeholder="What challenge does this address?" maxlength="500"></textarea></div>
+        <div class="field"><label>How it works <span class="req">*</span></label><textarea id="i-body" rows="4" placeholder="Describe simply." maxlength="5000" oninput="wc(this,'i-wc',150)"></textarea><div class="wc" id="i-wc">0 / 150 words</div></div>
+        <div class="field-row">
+          <div class="field"><label>Expected benefit</label><select id="i-benefit"><option>Saves time</option><option>Saves cost</option><option>Better customer experience</option><option>Team morale</option><option>Revenue growth</option><option>Other</option></select></div>
+          <div class="field"><label>Effort to implement</label><select id="i-effort"><option>Low — easy quick win</option><option>Medium — needs some work</option><option>High — big project</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENT -->
+    <div class="form-variant" id="fv-achievement">
+      <div class="fcard">
+        <div class="fcard-title">🏅 Achievement</div>
+        <div class="field"><label>Achievement Title <span class="req">*</span></label><input type="text" id="a-title" placeholder="e.g. Zero NPA for Q1 2026" maxlength="200"/></div>
+        <div class="field-row">
+          <div class="field"><label>Person / Team <span class="req">*</span></label><input type="text" id="a-team" placeholder="Name(s) or team" maxlength="150"/></div>
+          <div class="field"><label>Category</label><select id="a-cat"><option>Sales</option><option>Customer Service</option><option>Operations</option><option>Innovation</option><option>Community Outreach</option><option>Compliance</option></select></div>
+        </div>
+        <div class="field"><label>Describe the achievement <span class="req">*</span></label><textarea id="a-body" rows="5" placeholder="Use numbers — '200 families', 'Zero NPAs'. Numbers make impact visible." maxlength="5000" oninput="wc(this,'a-wc',150)"></textarea><div class="wc" id="a-wc">0 / 150 words</div></div>
+        <div class="field"><label>Add a team photo</label><div class="upload-z" onclick="document.getElementById('a-photo').click()"><div class="uz-icon">📷</div><div class="uz-text">Tap to add a photo (optional)</div><div class="uz-name" id="a-photo-name"></div></div><input type="file" id="a-photo" accept="image/*" style="display:none" onchange="showFN(this,'a-photo-name')"/></div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENT -->
+    <div class="form-variant" id="fv-announcement">
+      <div class="fcard">
+        <div class="fcard-title">📣 Announcement</div>
+        <div class="field"><label>Title <span class="req">*</span></label><input type="text" id="an-title" placeholder="e.g. Safety Week Programme — Karnataka Zone" maxlength="200"/></div>
+        <div class="field-row">
+          <div class="field"><label>Date / Period</label><input type="date" id="an-date"/></div>
+          <div class="field"><label>Location</label><input type="text" id="an-loc" placeholder="Zone / Branch / Online" maxlength="100"/></div>
+        </div>
+        <div class="field"><label>Details <span class="req">*</span></label><textarea id="an-body" rows="5" placeholder="Who should attend, what's happening, how to register." maxlength="5000" oninput="wc(this,'an-wc',120)"></textarea><div class="wc" id="an-wc">0 / 120 words</div></div>
+        <div class="field-row">
+          <div class="field"><label>Target audience</label><select id="an-aud"><option>All Employees</option><option>Field Officers</option><option>SarvaMitras</option><option>Branch Managers</option><option>Zone Heads</option><option>HR Team</option></select></div>
+          <div class="field"><label>RSVP by</label><input type="date" id="an-rsvp"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STORY -->
+    <div class="form-variant" id="fv-story">
+      <div class="fcard">
+        <div class="fcard-title">📸 Field Story</div>
+        <div class="field"><label>Story Headline <span class="req">*</span></label><input type="text" id="s-title" placeholder="Where, what happened" maxlength="200"/></div>
+        <div class="field-row">
+          <div class="field"><label>Village / District</label><input type="text" id="s-village" placeholder="e.g. Sinnar, Nashik" maxlength="100"/></div>
+          <div class="field"><label>Story type</label><select id="s-type"><option>Customer impact</option><option>Community initiative</option><option>Team effort</option><option>Learning moment</option><option>Innovation on ground</option></select></div>
+        </div>
+        <div class="field"><label>Tell the story <span class="req">*</span></label><textarea id="s-body" rows="6" placeholder="Start with one person. Paint the scene. What changed?" maxlength="5000" oninput="wc(this,'s-wc',200)"></textarea><div class="wc" id="s-wc">0 / 200 words</div></div>
+        <div class="field"><label>Photos from the field</label><div class="upload-z" onclick="document.getElementById('s-photo').click()"><div class="uz-icon">📷</div><div class="uz-text">Add up to 3 photos (optional but encouraged)</div><div class="uz-name" id="s-photo-name"></div></div><input type="file" id="s-photo" accept="image/*" multiple style="display:none" onchange="showFN(this,'s-photo-name')"/></div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="form-variant" id="fv-feedback">
+      <div class="fcard">
+        <div class="fcard-title">⭐ Feedback</div>
+        <div class="field"><label>Feedback title <span class="req">*</span></label><input type="text" id="fb-title" placeholder="e.g. Great training but needs better materials" maxlength="200"/></div>
+        <div class="field"><label>Feedback about <span class="req">*</span></label><select id="fb-about"><option>Training Programme</option><option>SarvaGram App / Tools</option><option>Branch Operations</option><option>Management Support</option><option>SarvaMitra Experience</option><option>HR Processes</option><option>Other</option></select></div>
+        <div class="field"><label>Your overall rating <span class="req">*</span></label><div class="star-row" id="stars"><span class="star" onclick="rate(1)">★</span><span class="star" onclick="rate(2)">★</span><span class="star" onclick="rate(3)">★</span><span class="star" onclick="rate(4)">★</span><span class="star" onclick="rate(5)">★</span></div><input type="hidden" id="fb-rating" value="0"/></div>
+        <div class="field"><label>What worked well?</label><textarea rows="3" id="fb-good" placeholder="Tell us what you liked." maxlength="1000"></textarea></div>
+        <div class="field"><label>What could be better? <span class="req">*</span></label><textarea id="fb-body" rows="4" placeholder="Suggestions for improvement…" maxlength="5000" oninput="wc(this,'fb-wc',120)"></textarea><div class="wc" id="fb-wc">0 / 120 words</div></div>
+      </div>
+    </div>
+
+    <button class="btn-sf" id="submit-btn" onclick="doSubmit()">Submit for Review →</button>
+    <div class="form-note">Reviewed by editorial team within 24–48 hours. Max 5 submissions per hour.</div>
   </div>
-</div><!-- /admin-shell -->
-<div class="edit-overlay" id="edit-overlay">
-  <div class="edit-modal">
-    <div class="em-head">
-      <div class="em-title">✏️ Edit Post</div>
-      <button class="em-x" onclick="closeEdit()">✕</button>
-    </div>
-    <input type="hidden" id="edit-id"/>
-    <input type="hidden" id="edit-type"/> <!-- submission or published -->
-    <div class="em-field"><label>Title</label><input type="text" id="edit-title"/></div>
-    <div class="em-field"><label>Content</label><textarea id="edit-content" rows="5"></textarea></div>
-    <div class="em-row">
-      <div class="em-field"><label>Section</label>
-        <select id="edit-section">
-          <option value="hero">Hero Slider</option>
-          <option value="top-highlight">Top Highlight</option>
-          <option value="whats-new">What's New</option>
-          <option value="achievements">Achievements</option>
-          <option value="ideas">Ideas</option>
-          <option value="spotlight">Spotlight</option>
-          <option value="on-ground">On-Ground</option>
-          <option value="quick-bytes">Quick Bytes</option>
-          <option value="zone-news">Zone News</option>
-        </select>
-      </div>
-      <div class="em-field"><label>Zone</label>
-        <select id="edit-zone">
-          <option value="all">All Zones</option>
-          <option value="gujarat">Gujarat</option>
-          <option value="karnataka">Karnataka</option>
-          <option value="maharashtra">Maharashtra</option>
-          <option value="rajasthan">Rajasthan</option>
-          <option value="telangana">Telangana</option>
-        </select>
-      </div>
-    </div>
-    <div class="em-row">
-      <div class="em-field"><label>Priority (1=High, 3=Low)</label>
-        <select id="edit-priority">
-          <option value="1">1 — High (shows first)</option>
-          <option value="2">2 — Medium</option>
-          <option value="3" selected>3 — Standard</option>
-          <option value="4">4 — Low</option>
-          <option value="5">5 — Lowest</option>
-        </select>
-      </div>
-      <div class="em-field"><label>Image URL (optional)</label>
-        <input type="text" id="edit-image" placeholder="https://… or Google Drive link"/>
-      </div>
-    </div>
-    <button class="em-save" onclick="saveEdit()">Save Changes</button>
+
+  <!-- SUCCESS -->
+  <div class="success-box" id="success-area">
+    <div class="suc-icon">🌿</div>
+    <div class="suc-title">Submitted!</div>
+    <div class="suc-msg">Your story is with the editorial team. You'll be notified once reviewed.</div>
+    <div class="suc-ref" id="suc-ref">Ref: SG-2026-XXXX</div><br/><br/>
+    <button class="btn-sf" style="max-width:240px;display:inline-block;" onclick="resetForm()">Submit Another</button><br/><br/>
+    <a class="btn-bl" href="mysubs.html">View My Submissions →</a>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<nav class="bottom-nav">
+  <button class="bn-item" onclick="location.href='index.html'"><div class="bn-icon">📰</div>Feed</button>
+  <button class="bn-item active"><div class="bn-icon">✏️</div>Submit</button>
+  <button class="bn-item" onclick="location.href='mysubs.html'"><div class="bn-icon">📋</div>Mine</button>
+</nav>
 
 <script src="supabase.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════
-// ADMIN PANEL JS (revised)
-// ═══════════════════════════════════════════════════════════
-// Uses SG helpers from supabase.js. All mutating calls require a valid
-// admin session token (set via SG.adminLogin).
-// ═══════════════════════════════════════════════════════════
+let currentCat='thought', starVal=0, isSubmitting=false;
+let lastSubmitAt=0;  // client-side debounce: block double-tap within 3s
 
-var SEC_NAMES = Object.fromEntries(SECTIONS.map(s => [s.slug, s.name]));
+const catVariants={thought:'fv-thought',idea:'fv-idea',achievement:'fv-achievement',announcement:'fv-announcement',story:'fv-story',feedback:'fv-feedback'};
+const titleFields ={thought:'t-title',idea:'i-title',achievement:'a-title',announcement:'an-title',story:'s-title',feedback:'fb-title'};
+const bodyFields  ={thought:'t-body', idea:'i-body', achievement:'a-body', announcement:'an-body', story:'s-body', feedback:'fb-body'};
 
-let allSubs = [], currentFilter = 'all', selectedIds = new Set(), allPubContent = [];
-
-function ago(dt) {
-  const ms = Date.now() - new Date(dt);
-  if (ms < 0) return 'Just now';
-  const d = Math.floor(ms / 864e5);
-  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d + 'd ago';
+function selCat(el){
+  document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  currentCat=el.dataset.cat;
+  document.querySelectorAll('.form-variant').forEach(v=>v.classList.remove('active'));
+  document.getElementById(catVariants[currentCat]).classList.add('active');
 }
-function initials(n) { return (n || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'; }
+function selPill(el){el.closest('.mood-pills').querySelectorAll('.mpill').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');}
+function wc(el,outId,max){const w=el.value.trim().split(/\s+/).filter(w=>w.length>0).length;document.getElementById(outId).textContent=`${w} / ${max} words`;}
+function rate(n){starVal=n;document.getElementById('fb-rating').value=n;document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+function showFN(input,id){document.getElementById(id).textContent=Array.from(input.files).map(f=>f.name).join(', ');}
+function showErr(msg){const el=document.getElementById('err-box');el.textContent=msg;el.classList.add('show');el.scrollIntoView({behavior:'smooth',block:'center'});}
+function clearErr(){document.getElementById('err-box').classList.remove('show');}
 
-function toast(msg, dur = 2500) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), dur);
+// Client-side validation mirroring server-side constraints.
+// Server enforces these too (check constraints + rate-limit trigger); these
+// guards exist to give immediate feedback, not as a security boundary.
+function validate(fields){
+  if(!fields.empId) return 'Please enter your Employee ID.';
+  if(fields.empId.length < 3 || fields.empId.length > 40) return 'Employee ID must be 3–40 characters.';
+  if(!fields.name) return 'Please enter your name.';
+  if(fields.name.length < 2 || fields.name.length > 100) return 'Name must be 2–100 characters.';
+  if(!fields.zone) return 'Please select your zone.';
+  if(!fields.title) return 'Please enter a title.';
+  if(fields.title.length < 3 || fields.title.length > 200) return 'Title must be 3–200 characters.';
+  if(!fields.content) return 'Please write your content.';
+  if(fields.content.length < 10 || fields.content.length > 5000) return 'Content must be 10–5000 characters.';
+  if(currentCat === 'feedback' && starVal === 0) return 'Please give a star rating.';
+  return null;
 }
 
-// Handle 401/403 — session expired — globally.
-async function withAuthRetry(fn) {
-  try {
-    return await fn();
-  } catch (e) {
-    if (e && (e.status === 401 || e.status === 403 || e.needsReauth)) {
-      SG.adminLogout();  // clears token + redirects to login
-      throw new Error('Session expired. Please sign in again.');
-    }
-    throw e;
+async function doSubmit(){
+  clearErr();
+
+  // Client-side debounce — prevent double-tap duplicate submissions
+  const now = Date.now();
+  if(isSubmitting || (now - lastSubmitAt < 3000)){
+    return;
   }
-}
 
-// ── LOGIN ────────────────────────────────────────────────
-async function doLogin() {
-  const pwEl = document.getElementById('pw-input');
-  const errEl = document.getElementById('login-err');
-  const btn = document.querySelector('.login-btn');
-  errEl.style.display = 'none';
+  // Honeypot check: if the hidden field is filled, silently drop the submit.
+  // (Don't tell the bot why — they'll just try harder.)
+  const hp = document.getElementById('website-url').value.trim();
+  if(hp){
+    console.warn('Honeypot triggered, silently dropping submission.');
+    document.getElementById('success-area').style.display='block';
+    document.getElementById('form-area').style.display='none';
+    return;
+  }
+
+  const fields = {
+    empId:    document.getElementById('f-empid').value.trim(),
+    name:     document.getElementById('f-name').value.trim(),
+    zone:     document.getElementById('f-zone').value,
+    branch:   document.getElementById('f-branch').value.trim(),
+    title:    (document.getElementById(titleFields[currentCat])?.value||'').trim(),
+    content:  (document.getElementById(bodyFields[currentCat])?.value||'').trim(),
+  };
+
+  const err = validate(fields);
+  if(err){ showErr(err); return; }
+
+  // Extra per-category fields (all size-capped)
+  const extraData = { branch: fields.branch.slice(0,100) };
+  if(currentCat==='feedback'){
+    extraData.rating = starVal;
+    extraData.good = (document.getElementById('fb-good')?.value||'').slice(0,1000);
+    extraData.about = document.getElementById('fb-about')?.value||'';
+  }
+  if(currentCat==='announcement'){
+    extraData.date = document.getElementById('an-date')?.value||'';
+    extraData.location = (document.getElementById('an-loc')?.value||'').slice(0,100);
+    extraData.audience = document.getElementById('an-aud')?.value||'';
+  }
+  if(currentCat==='story'){
+    extraData.village = (document.getElementById('s-village')?.value||'').slice(0,100);
+    extraData.type = document.getElementById('s-type')?.value||'';
+  }
+  if(currentCat==='idea'){
+    extraData.problem = (document.getElementById('i-problem')?.value||'').slice(0,500);
+    extraData.benefit = document.getElementById('i-benefit')?.value||'';
+    extraData.effort  = document.getElementById('i-effort')?.value||'';
+  }
+  if(currentCat==='achievement'){
+    extraData.team = (document.getElementById('a-team')?.value||'').slice(0,150);
+    extraData.category = document.getElementById('a-cat')?.value||'';
+  }
+
+  // Idempotency key — client-generated, helps detect duplicate network retries
+  // on the server side (when that feature is added). Safe to send today; unused.
+  const idempotencyKey = (crypto.randomUUID && crypto.randomUUID())
+    || (Date.now() + '-' + Math.random().toString(36).slice(2));
+  extraData._client_key = idempotencyKey;
+
+  isSubmitting = true;
+  lastSubmitAt = now;
+  const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.textContent = 'Signing in…';
-  try {
-    await SG.adminLogin(pwEl.value);
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-shell').style.display = 'block';
-    pwEl.value = '';
-    await loadSubs();
-    await loadPublished();
-  } catch (e) {
-    errEl.textContent = 'Incorrect password. Please try again.';
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign In →';
-  }
-}
+  btn.textContent = 'Submitting…';
 
-// ── LOAD ─────────────────────────────────────────────────
-async function loadSubs() {
-  try {
-    allSubs = await withAuthRetry(() => SG.getAllSubmissions());
-    updateStats(); applyFilters();
-    renderCapBars(); renderReadyQueue(); renderRecentPub();
-  } catch (e) {
-    document.getElementById('review-list').innerHTML =
-      `<div class="empty">Could not load submissions. ${esc(e.message || '')}</div>`;
-  }
-}
-
-function updateStats() {
-  const cnt = s => allSubs.filter(x => x.status === s).length;
-  document.getElementById('st-total').textContent = allSubs.length;
-  document.getElementById('st-pend').textContent = cnt('pending');
-  document.getElementById('st-app').textContent = cnt('approved');
-  document.getElementById('st-pub').textContent = cnt('published');
-  document.getElementById('st-rej').textContent = cnt('rejected');
-}
-
-function filterSubs(status, btn) {
-  currentFilter = status;
-  document.querySelectorAll('#panel-review .fb-btn').forEach(b => b.classList.remove('active'));
-  btn && btn.classList.add('active');
-  applyFilters();
-}
-
-function applyFilters() {
-  const zone = document.getElementById('zone-filter').value;
-  const q = (document.getElementById('search-input').value || '').toLowerCase();
-  let list = allSubs;
-  if (currentFilter === 'unpublished') {
-    list = list.filter(s => s.status === 'approved' && s.published_at);
-  } else if (currentFilter !== 'all') {
-    list = list.filter(s => s.status === currentFilter);
-  }
-  if (zone) list = list.filter(s => s.zone_slug === zone);
-  if (q) list = list.filter(s => ((s.title||'') + (s.content||'') + (s.emp_name||'') + (s.emp_id||'')).toLowerCase().includes(q));
-  renderReview(list);
-}
-
-const statusMap = {
-  pending:     { cls: 'rs-pend', lbl: 'Pending' },
-  approved:    { cls: 'rs-app',  lbl: 'Approved' },
-  rejected:    { cls: 'rs-rej',  lbl: 'Rejected' },
-  published:   { cls: 'rs-pub',  lbl: 'Published' },
-  unpublished: { cls: 'rs-unp',  lbl: 'Unpublished' },
-};
-
-function renderReview(list) {
-  const root = document.getElementById('review-list');
-  if (!list.length) { root.innerHTML = '<div class="empty">No submissions found.</div>'; return; }
-  let html = '';
-  list.forEach(s => {
-    const sm = statusMap[s.status] || statusMap.pending;
-    const canApp = s.status === 'pending';
-    const canPub = s.status === 'approved';
-    const canRej = s.status === 'pending' || s.status === 'approved';
-    const isPublished = s.status === 'published';
-    const prio = s.priority || 3;
-    const dots = [1,2,3].map(i => `<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${escAttr(s.id)}',${i})" title="Priority ${i}"></div>`).join('');
-    const secOpts = SECTIONS.map(sec => `<option value="${escAttr(sec.slug)}"${s.section_slug===sec.slug?' selected':''}>${esc(sec.name)}</option>`).join('');
-    const imgUrl = safeImgUrl(s.extra_data && s.extra_data.image_url);
-    const imgHtml = imgUrl ? `<img src="${escAttr(imgUrl)}" class="rc-img" onerror="this.style.display='none'"/>` : '';
-    html += `<div class="rev-card${selectedIds.has(s.id) ? ' selected' : ''}" id="rc-${escAttr(s.id)}">
-      <div class="rc-top">
-        <input type="checkbox" class="rc-cb" ${selectedIds.has(s.id)?'checked':''} onchange="toggleSel('${escAttr(s.id)}',this)"/>
-        <div class="rc-av">${esc(initials(s.emp_name))}</div>
-        <div class="rc-info">
-          <div class="rc-name">${esc(s.emp_name)} <span style="font-weight:400;color:var(--mu);font-size:11px;">${esc(s.emp_id)}</span></div>
-          <div class="rc-meta">${esc(ZONE_NAMES[s.zone_slug]||s.zone_slug)} · ${esc(ago(s.created_at))} · ${esc(CAT_LABELS[s.category]||s.category)}${s.extra_data&&s.extra_data.branch?' · '+esc(s.extra_data.branch):''}</div>
-        </div>
-        <span class="rc-status ${sm.cls}">${sm.lbl}</span>
-      </div>
-      <div class="rc-content">${imgHtml}<div class="rc-title">${esc(s.title)}</div>${esc(s.content)}</div>
-      <div class="rc-actions">
-        ${canApp ? `<button class="act act-app" onclick="approve('${escAttr(s.id)}')">✓ Approve</button>` : ''}
-        ${canRej ? `<button class="act act-rej-btn" onclick="showRej('${escAttr(s.id)}')">✗ Reject</button>` : ''}
-        ${canPub ? `
-          <select class="rc-sel" id="sec-${escAttr(s.id)}"><option value="">Set section…</option>${secOpts}</select>
-          <div class="pdots" title="Priority: 1=High">${dots}</div>
-          <button class="act act-pub" onclick="publish('${escAttr(s.id)}')">🚀 Publish</button>
-        ` : ''}
-        ${isPublished ? `
-          <span style="font-size:11px;color:var(--gr-d);">📰 ${esc(SEC_NAMES[s.section_slug]||'—')}</span>
-          <button class="act act-unpub" onclick="unpublishSub('${escAttr(s.id)}')">↩ Unpublish</button>
-        ` : ''}
-        <button class="act act-edit" onclick="openEdit('${escAttr(s.id)}','submission')" style="margin-left:auto;">✏️ Edit</button>
-      </div>
-      <div class="rej-box" id="rej-box-${escAttr(s.id)}">
-        <textarea id="rej-note-${escAttr(s.id)}" rows="2" placeholder="Reason for rejection (shown to employee)…" maxlength="500"></textarea>
-        <button class="rej-confirm" onclick="confirmRej('${escAttr(s.id)}')">Confirm Rejection</button>
-      </div>
-    </div>`;
-  });
-  root.innerHTML = html;
-}
-
-// ── Selection & bulk ────────────────────────────────────
-function toggleSel(id, cb) {
-  if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
-  const card = document.getElementById('rc-' + id);
-  if (card) card.classList.toggle('selected', cb.checked);
-  updateBulkBar();
-}
-function updateBulkBar() {
-  const bar = document.getElementById('bulk-bar');
-  const count = selectedIds.size;
-  if (count > 0) { bar.classList.add('show'); document.getElementById('bulk-count').textContent = count + ' selected'; }
-  else bar.classList.remove('show');
-}
-function clearSelection() { selectedIds.clear(); applyFilters(); }
-
-async function bulkApprove() {
-  if (!selectedIds.size) return;
-  const ids = [...selectedIds];
-  try {
-    await withAuthRetry(() => Promise.all(ids.map(id => SG.updateSubmission(id, { status: 'approved' }))));
-    ids.forEach(id => { const s = allSubs.find(x => x.id === id); if (s) s.status = 'approved'; });
-    clearSelection(); updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
-    toast(`✅ ${ids.length} submissions approved`);
-  } catch (e) { toast('❌ ' + (e.message || 'Bulk approve failed')); }
-}
-
-async function bulkReject() {
-  if (!selectedIds.size) return;
-  const ids = [...selectedIds];
-  try {
-    await withAuthRetry(() => Promise.all(ids.map(id => SG.updateSubmission(id, { status: 'rejected' }))));
-    ids.forEach(id => { const s = allSubs.find(x => x.id === id); if (s) s.status = 'rejected'; });
-    clearSelection(); updateStats(); applyFilters();
-    toast(`${ids.length} submissions rejected`);
-  } catch (e) { toast('❌ ' + (e.message || 'Bulk reject failed')); }
-}
-
-// ── Approve / Reject / Publish / Unpublish ──────────────
-async function approve(id) {
-  const btn = document.querySelector(`#rc-${CSS.escape(id)} .act-app`);
-  if (btn) btn.disabled = true;
-  try {
-    await withAuthRetry(() => SG.updateSubmission(id, { status: 'approved' }));
-    const s = allSubs.find(x => x.id === id); if (s) s.status = 'approved';
-    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
-    toast('✅ Approved');
-  } catch (e) { toast('❌ ' + (e.message || 'Approve failed')); if (btn) btn.disabled = false; }
-}
-
-function showRej(id) {
-  document.querySelectorAll('.rej-box').forEach(el => el.style.display = 'none');
-  const box = document.getElementById('rej-box-' + id);
-  if (box) box.style.display = 'block';
-}
-
-async function confirmRej(id) {
-  const note = (document.getElementById('rej-note-' + id)?.value || '').trim().slice(0, 500);
-  try {
-    await withAuthRetry(() => SG.updateSubmission(id, { status: 'rejected', admin_note: note || null }));
-    const s = allSubs.find(x => x.id === id);
-    if (s) { s.status = 'rejected'; s.admin_note = note; }
-    updateStats(); applyFilters(); renderCapBars();
-    toast('Rejected');
-  } catch (e) { toast('❌ ' + (e.message || 'Reject failed')); }
-}
-
-function setPrio(id, val) {
-  const s = allSubs.find(x => x.id === id);
-  if (s) s.priority = val;
-  const card = document.getElementById('rc-' + id);
-  if (card) card.querySelectorAll('.pdot').forEach((d, i) => d.classList.toggle('on', i < val));
-}
-
-async function publish(id) {
-  const secEl = document.getElementById('sec-' + id);
-  if (!secEl?.value) { toast('⚠️ Please select a section first.'); return; }
-  const s = allSubs.find(x => x.id === id);
-  if (!s) return;
-  const btn = document.querySelector(`#rc-${CSS.escape(id)} .act-pub`);
-  if (btn) btn.disabled = true;
-  try {
-    await withAuthRetry(() => SG.publishSubmission(s, secEl.value, s.priority || 3));
-    s.status = 'published'; s.section_slug = secEl.value;
-    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue(); renderRecentPub();
-    await loadPublished();
-    toast('🚀 Published to ' + SEC_NAMES[secEl.value]);
-  } catch (e) { toast('❌ ' + (e.message || 'Publish failed')); if (btn) btn.disabled = false; }
-}
-
-async function unpublishSub(subId) {
-  if (!confirm('Remove this post from the live magazine? It will stay in your submissions as Approved.')) return;
-  try {
-    // Atomic via RPC — handles both pc.is_active=false AND submission.status=approved
-    await withAuthRetry(() => SG.unpublishSubmission(subId));
-    const s = allSubs.find(x => x.id === subId);
-    if (s) { s.status = 'approved'; s.published_at = null; }
-    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
-    await loadPublished();
-    toast('↩ Post removed from live magazine');
-  } catch (e) { toast('❌ ' + (e.message || 'Unpublish failed')); }
-}
-
-async function publishFromQueue(id) {
-  const secEl = document.getElementById('qsec-' + id);
-  if (!secEl?.value) { toast('⚠️ Select a section.'); return; }
-  const s = allSubs.find(x => x.id === id);
-  if (!s) return;
-  try {
-    await withAuthRetry(() => SG.publishSubmission(s, secEl.value, s.priority || 3));
-    s.status = 'published'; s.section_slug = secEl.value;
-    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue(); renderRecentPub();
-    await loadPublished();
-    toast('🚀 Published!');
-  } catch (e) { toast('❌ ' + (e.message || 'Publish failed')); }
-}
-
-// ── Edit modal ──────────────────────────────────────────
-function openEdit(id, type) {
-  const data = type === 'submission' ? allSubs.find(x => x.id === id) : allPubContent.find(x => x.id === id);
-  if (!data) return;
-  document.getElementById('edit-id').value = id;
-  document.getElementById('edit-type').value = type;
-  document.getElementById('edit-title').value = data.title || '';
-  document.getElementById('edit-content').value = data.content || '';
-  document.getElementById('edit-section').value = data.section_slug || 'whats-new';
-  document.getElementById('edit-zone').value = data.zone_slug || 'maharashtra';
-  document.getElementById('edit-priority').value = data.priority || 3;
-  document.getElementById('edit-image').value = (data.extra_data && data.extra_data.image_url) || '';
-  document.getElementById('edit-overlay').classList.add('show');
-}
-function closeEdit() { document.getElementById('edit-overlay').classList.remove('show'); }
-
-async function saveEdit() {
-  const id = document.getElementById('edit-id').value;
-  const type = document.getElementById('edit-type').value;
-  const title = document.getElementById('edit-title').value.trim().slice(0, 200);
-  const content = document.getElementById('edit-content').value.trim().slice(0, 5000);
-  const section = document.getElementById('edit-section').value;
-  const zone = document.getElementById('edit-zone').value;
-  const priority = parseInt(document.getElementById('edit-priority').value) || 3;
-  const imageUrl = safeImgUrl(document.getElementById('edit-image').value.trim());
-
-  if (title.length < 3 || content.length < 10) {
-    toast('⚠️ Title (≥3 chars) and content (≥10 chars) are required.');
-    return;
-  }
-  const extra = imageUrl ? { image_url: imageUrl } : {};
-
-  try {
-    if (type === 'submission') {
-      await withAuthRetry(() => SG.updateSubmission(id, {
-        title, content, section_slug: section, zone_slug: zone, priority, extra_data: extra
-      }));
-      const s = allSubs.find(x => x.id === id);
-      if (s) { s.title = title; s.content = content; s.section_slug = section; s.zone_slug = zone; s.priority = priority; s.extra_data = extra; }
+  try{
+    await SG.submitThought({
+      emp_id: fields.empId,
+      emp_name: fields.name,
+      zone_slug: fields.zone,
+      branch: fields.branch,
+      category: currentCat,
+      title: fields.title,
+      content: fields.content,
+      extra_data: extraData
+    });
+    document.getElementById('suc-ref').textContent='Ref: SG-2026-'+Math.floor(1000+Math.random()*9000);
+    document.getElementById('form-area').style.display='none';
+    document.getElementById('success-area').style.display='block';
+    window.scrollTo(0,0);
+  }catch(e){
+    console.error(e);
+    const raw = (e && e.message) ? e.message : '';
+    let friendly;
+    if(raw.includes('Rate limit')){
+      friendly = 'You have reached the 5-submissions-per-hour limit. Please try again later.';
+    } else if(raw.includes('violates check constraint')){
+      friendly = 'One of your fields is too short or too long. Please check and try again.';
+    } else if(raw.includes('between')){
+      friendly = raw;  // Our own validation message, already user-friendly
     } else {
-      await withAuthRetry(() => SG.updatePublished(id, {
-        title, content, section_slug: section, zone_slug: zone, priority, extra_data: extra
-      }));
-      const p = allPubContent.find(x => x.id === id);
-      if (p) { p.title = title; p.content = content; p.section_slug = section; p.zone_slug = zone; p.priority = priority; p.extra_data = extra; }
+      friendly = 'Submission failed. Please try again in a moment.';
     }
-    closeEdit();
-    applyFilters(); renderCapBars();
-    await loadPublished();
-    toast('✅ Post updated');
-  } catch (e) { toast('❌ ' + (e.message || 'Save failed')); }
-}
-
-// ── Publish panel ───────────────────────────────────────
-function renderCapBars() {
-  const pub = allSubs.filter(s => s.status === 'published');
-  let html = '';
-  SECTIONS.forEach(sec => {
-    const count = pub.filter(s => s.section_slug === sec.slug).length;
-    const pct = Math.min(100, Math.round((count / sec.max) * 100));
-    const cls = pct >= 100 ? 'cap-full' : pct >= 50 ? 'cap-mid' : 'cap-empty';
-    html += `<div class="cap-row"><div class="cap-name">${esc(sec.name)}</div><div class="cap-bar-wrap"><div class="cap-bar ${cls}" style="width:${pct}%"></div></div><div class="cap-count">${count}/${sec.max}</div></div>`;
-  });
-  document.getElementById('cap-bars').innerHTML = html || '<div class="empty" style="padding:8px;">No published items yet.</div>';
-}
-
-function renderReadyQueue() {
-  const approved = allSubs.filter(s => s.status === 'approved');
-  if (!approved.length) { document.getElementById('ready-queue').innerHTML = '<div class="empty" style="padding:12px;font-size:12px;">No approved items waiting.</div>'; return; }
-  const html = approved.map(s => `
-    <div class="pq-item">
-      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${esc(CAT_LABELS[s.category]||s.category)}</div></div>
-      <select class="rc-sel" id="qsec-${escAttr(s.id)}" style="font-size:11px;"><option value="">Section…</option>${SECTIONS.map(sec => `<option value="${escAttr(sec.slug)}">${esc(sec.name)}</option>`).join('')}</select>
-      <button class="act act-pub" style="font-size:11px;padding:4px 10px;" onclick="publishFromQueue('${escAttr(s.id)}')">Pub</button>
-    </div>`).join('');
-  document.getElementById('ready-queue').innerHTML = html;
-}
-
-function renderRecentPub() {
-  const pub = allSubs.filter(s => s.status === 'published').slice(0, 8);
-  if (!pub.length) { document.getElementById('recent-pub').innerHTML = '<div class="empty" style="padding:12px;font-size:12px;">Nothing published yet.</div>'; return; }
-  document.getElementById('recent-pub').innerHTML = pub.map(p => `
-    <div class="pq-item">
-      <div><div class="pq-title">${esc(p.title)}</div><div class="pq-meta">${esc(p.emp_name)}</div></div>
-      <span class="pq-sec">${esc(SEC_NAMES[p.section_slug]||'—')}</span>
-    </div>`).join('');
-}
-
-// ── Live content (published) ────────────────────────────
-async function loadPublished() {
-  try {
-    // Admin sees EVERY published_content row (active + inactive) for
-    // complete editorial visibility. Public homepage uses getHomepage() which
-    // filters to is_active=true.
-    allPubContent = await withAuthRetry(() => SG.getAllPublished());
-    filterPublished();
-    if (document.getElementById('panel-hero')?.classList.contains('active')) loadHeroPanel();
-  } catch (e) {
-    document.getElementById('pub-list').innerHTML = `<div class="empty">${esc(e.message || 'Could not load.')}</div>`;
+    showErr(friendly);
+    btn.disabled = false;
+    btn.textContent = 'Submit for Review →';
+  } finally {
+    isSubmitting = false;
   }
 }
 
-function filterPublished() {
-  const zone = document.getElementById('pub-zone-f')?.value || '';
-  const section = document.getElementById('pub-sec-f')?.value || '';
-  const q = (document.getElementById('pub-search')?.value || '').toLowerCase();
-  let items = allPubContent; // includes removed (is_active=false)
-  if (zone) items = items.filter(p => p.zone_slug === zone);
-  if (section) items = items.filter(p => p.section_slug === section);
-  if (q) items = items.filter(p => ((p.title||'') + (p.content||'') + (p.emp_name||'')).toLowerCase().includes(q));
-  renderPublished(items);
+function resetForm(){
+  document.getElementById('form-area').style.display='block';
+  document.getElementById('success-area').style.display='none';
+  document.querySelectorAll('input[type=text],textarea,input[type=date]').forEach(el=>el.value='');
+  document.getElementById('f-zone').value='';
+  document.getElementById('fb-rating').value=0;
+  starVal = 0;
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+  document.getElementById('submit-btn').disabled=false;
+  document.getElementById('submit-btn').textContent='Submit for Review →';
+  window.scrollTo(0,0);
 }
-
-function renderPublished(items) {
-  const root = document.getElementById('pub-list');
-  if (!items.length) { root.innerHTML = '<div class="empty">No published content for this filter.</div>'; return; }
-  const html = items.map(p => {
-    const isRemoved = p.is_active === false;
-    const imgUrl = safeImgUrl(p.extra_data && p.extra_data.image_url);
-    const av = initials(p.emp_name);
-    const avatarHtml = imgUrl
-      ? `<img src="${escAttr(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`
-      : `<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${esc(av)}</div>`;
-    return `<div class="pub-item" id="pi-${escAttr(p.id)}" style="${isRemoved ? 'opacity:0.6;border-left:3px solid #C62828;' : ''}">
-      ${avatarHtml}
-      <div class="pi-body">
-        <div class="pi-title">${esc(p.title)}</div>
-        <div class="pi-meta">
-          <span class="pi-sec">${esc(SEC_NAMES[p.section_slug]||p.section_slug)}</span>
-          <span class="pi-zone">${esc(ZONE_NAMES[p.zone_slug]||p.zone_slug)}</span>
-          <span style="font-size:11px;color:var(--mu);margin-left:6px;">P${p.priority||3} · ${esc(p.emp_name)}</span>
-        </div>
-        <div style="font-size:12px;color:var(--mu);">${esc((p.content||'').slice(0,120))}…</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-        <button class="act act-edit" onclick="openEdit('${escAttr(p.id)}','published')" style="font-size:12px;padding:5px 10px;">✏️ Edit</button>
-        ${isRemoved ? `<button class="act act-restore" onclick="restoreContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">↩ Restore</button>` : `<button class="act act-unpub" onclick="unpubContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">Remove</button>`}
-      </div>
-    </div>`;
-  }).join('');
-  root.innerHTML = html;
-}
-
-async function unpubContent(id) {
-  if (!confirm('Remove this post from the live magazine? It will stay here as Removed so you can republish it.')) return;
-  try {
-    await withAuthRetry(() => SG.unpublishContent(id));
-    // Mark as inactive in local state but KEEP in list so admin can see/restore
-    const p = allPubContent.find(x => x.id === id);
-    if (p) p.is_active = false;
-    filterPublished();
-    toast('↩ Removed from live magazine — still visible here as Removed');
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
-}
-
-// ── CSV download (with injection guard) ─────────────────
-function csvCell(v) {
-  const s = String(v ?? '');
-  const escaped = s.replace(/"/g, '""');
-  // Prefix dangerous leading chars with an apostrophe so Excel does not evaluate as formula
-  if (/^[=+\-@\t\r]/.test(s)) return `"'${escaped}"`;
-  return `"${escaped}"`;
-}
-
-function downloadCSV() {
-  const zone = document.getElementById('zone-filter').value;
-  const q = (document.getElementById('search-input').value || '').toLowerCase();
-  let list = allSubs;
-  if (currentFilter !== 'all') list = list.filter(s => s.status === currentFilter);
-  if (zone) list = list.filter(s => s.zone_slug === zone);
-  if (q) list = list.filter(s => ((s.title||'') + (s.content||'') + (s.emp_name||'') + (s.emp_id||'')).toLowerCase().includes(q));
-  if (!list.length) { toast('No data to download.'); return; }
-
-  const headers = ['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted','Admin Note'];
-  const rows = list.map(s => [
-    s.emp_id || '', s.emp_name || '',
-    ZONE_NAMES[s.zone_slug] || s.zone_slug || '',
-    (s.extra_data && s.extra_data.branch) || '',
-    CAT_LABELS[s.category] || s.category || '',
-    s.title || '', s.content || '', s.status || '',
-    SEC_NAMES[s.section_slug] || s.section_slug || '',
-    s.priority || '',
-    s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN') : '',
-    s.admin_note || ''
-  ]);
-  const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `sarvagram-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('✅ CSV downloaded');
-}
-
-// ── Hero management ─────────────────────────────────────
-async function loadHeroPanel() { renderHeroSlides(); renderHeroQueue(); }
-
-function renderHeroSlides() {
-  const heroItems = allPubContent
-    .filter(p => p.section_slug === 'hero' && p.is_active !== false)
-    .sort((a, b) => (a.priority || 3) - (b.priority || 3));
-  const el = document.getElementById('hero-slides-list');
-  if (!heroItems.length) {
-    el.innerHTML = '<div class="empty" style="padding:12px;">No hero slides set yet. Add posts below.</div>';
-    return;
-  }
-  el.innerHTML = heroItems.map((p, i) => `
-    <div class="pub-item" id="hs-${escAttr(p.id)}" style="margin-bottom:8px;">
-      <div class="rc-av" style="background:var(--bl-l);color:var(--bl);font-family:serif;font-size:16px;">${i + 1}</div>
-      <div class="pi-body">
-        <div class="pi-title">${esc(p.title)}</div>
-        <div class="pi-meta">
-          <span class="pi-zone">${esc(ZONE_NAMES[p.zone_slug] || p.zone_slug)}</span>
-          <span style="font-size:11px;color:var(--mu);margin-left:6px;">${esc(p.emp_name)}</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="act act-unpub" onclick="removeFromHero('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">✕ Remove</button>
-        ${i > 0 ? `<button class="act" onclick="moveHero('${escAttr(p.id)}','up')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↑</button>` : ''}
-        ${i < heroItems.length - 1 ? `<button class="act" onclick="moveHero('${escAttr(p.id)}','down')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↓</button>` : ''}
-      </div>
-    </div>`).join('');
-}
-
-function filterHeroQueue() { renderHeroQueue(); }
-
-function renderHeroQueue() {
-  const zone = document.getElementById('hero-zone-f')?.value || '';
-  const q = (document.getElementById('hero-search')?.value || '').toLowerCase();
-  const heroIds = new Set(allPubContent.filter(p => p.section_slug === 'hero').map(p => p.id));
-  let pool = allPubContent.filter(p => p.section_slug !== 'hero' && p.is_active !== false && !heroIds.has(p.id));
-  if (zone) pool = pool.filter(p => p.zone_slug === zone);
-  if (q) pool = pool.filter(p => ((p.title||'') + (p.emp_name||'')).toLowerCase().includes(q));
-  pool = pool.slice(0, 20);
-  const el = document.getElementById('hero-queue-list');
-  if (!pool.length) { el.innerHTML = '<div class="empty" style="padding:12px;">No posts found.</div>'; return; }
-  el.innerHTML = pool.map(p => `
-    <div class="pq-item">
-      <div style="flex:1;">
-        <div class="pq-title">${esc(p.title)}</div>
-        <div class="pq-meta">${esc(p.emp_name)} · ${esc(ZONE_NAMES[p.zone_slug]||p.zone_slug)} · ${esc(SEC_NAMES[p.section_slug]||p.section_slug)}</div>
-      </div>
-      <button class="act act-pub" style="font-size:12px;padding:5px 12px;" onclick="addToHero('${escAttr(p.id)}')">+ Add to Hero</button>
-    </div>`).join('');
-}
-
-async function addToHero(id) {
-  const p = allPubContent.find(x => x.id === id);
-  if (!p) { toast('Post not found'); return; }
-  const heroItems = allPubContent.filter(x => x.section_slug === 'hero' && x.is_active !== false);
-  if (heroItems.length >= 5) { toast('⚠️ Hero already has 5 slides. Remove one first.'); return; }
-  try {
-    await withAuthRetry(() => SG.updatePublished(id, { section_slug: 'hero', priority: heroItems.length + 1 }));
-    p.section_slug = 'hero'; p.priority = heroItems.length + 1;
-    renderHeroSlides(); renderHeroQueue();
-    toast('✅ Added to Hero slider — refresh the homepage to see it');
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
-}
-
-async function removeFromHero(id) {
-  const p = allPubContent.find(x => x.id === id);
-  if (!p) return;
-  try {
-    const origSection = p.category === 'achievement' ? 'achievements' : p.category === 'idea' ? 'ideas' : 'whats-new';
-    await withAuthRetry(() => SG.updatePublished(id, { section_slug: origSection, priority: 3 }));
-    p.section_slug = origSection; p.priority = 3;
-    renderHeroSlides(); renderHeroQueue();
-    toast('↩ Moved back to ' + SEC_NAMES[origSection]);
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
-}
-
-async function moveHero(id, dir) {
-  const heroItems = allPubContent.filter(p => p.section_slug === 'hero' && p.is_active !== false)
-    .sort((a, b) => (a.priority || 3) - (b.priority || 3));
-  const idx = heroItems.findIndex(p => p.id === id);
-  if (idx === -1) return;
-  const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
-  if (swapIdx < 0 || swapIdx >= heroItems.length) return;
-  const a = heroItems[idx], b = heroItems[swapIdx];
-  const tmp = a.priority; a.priority = b.priority; b.priority = tmp;
-  try {
-    await withAuthRetry(() => Promise.all([
-      SG.updatePublished(a.id, { priority: a.priority }),
-      SG.updatePublished(b.id, { priority: b.priority }),
-    ]));
-    renderHeroSlides();
-    toast('↕ Reordered');
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
-}
-
-async function restoreContent(id) {
-  try {
-    await withAuthRetry(() => SG.updatePublished(id, { is_active: true }));
-    const p = allPubContent.find(x => x.id === id);
-    if (p) p.is_active = true;
-    filterPublished();
-    toast('✅ Post restored to live magazine');
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
-}
-
-// ── Nav ─────────────────────────────────────────────────
-function showPanel(id, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  document.querySelectorAll('.an-tab,.mt-tab').forEach(t => t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  if (id === 'publish') { renderReadyQueue(); renderCapBars(); renderRecentPub(); }
-  if (id === 'published') loadPublished();
-  if (id === 'hero') loadHeroPanel();
-}
-
-// ── Init ────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  // Wire up Enter key on password field
-  const pwEl = document.getElementById('pw-input');
-  if (pwEl) pwEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-  if (SG.checkAdmin()) {
-    // Verify the token still works by making a probe call. If it fails, clear it.
-    try {
-      await SG.getAllSubmissions();
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-shell').style.display = 'block';
-      await loadSubs();
-      await loadPublished();
-    } catch (e) {
-      // Bad/expired token — stay on login screen
-      SG.adminLogout();  // clears token
-      // Don't redirect (adminLogout does); just drop through to login UI
-    }
-  }
-});
+function openMM(){document.getElementById('mm').classList.add('open');document.getElementById('overlay').classList.add('show');}
+function closeMM(){document.getElementById('mm').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
 </script>
 </body>
 </html>
