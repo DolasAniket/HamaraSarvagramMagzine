@@ -357,6 +357,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
       </div>
       <div class="em-field"><label>Zone</label>
         <select id="edit-zone">
+          <option value="all">All Zones</option>
           <option value="gujarat">Gujarat</option>
           <option value="karnataka">Karnataka</option>
           <option value="maharashtra">Maharashtra</option>
@@ -771,7 +772,7 @@ function filterPublished() {
   const zone = document.getElementById('pub-zone-f')?.value || '';
   const section = document.getElementById('pub-sec-f')?.value || '';
   const q = (document.getElementById('pub-search')?.value || '').toLowerCase();
-  let items = allPubContent;
+  let items = allPubContent; // includes removed (is_active=false)
   if (zone) items = items.filter(p => p.zone_slug === zone);
   if (section) items = items.filter(p => p.section_slug === section);
   if (q) items = items.filter(p => ((p.title||'') + (p.content||'') + (p.emp_name||'')).toLowerCase().includes(q));
@@ -782,12 +783,13 @@ function renderPublished(items) {
   const root = document.getElementById('pub-list');
   if (!items.length) { root.innerHTML = '<div class="empty">No published content for this filter.</div>'; return; }
   const html = items.map(p => {
+    const isRemoved = p.is_active === false;
     const imgUrl = safeImgUrl(p.extra_data && p.extra_data.image_url);
     const av = initials(p.emp_name);
     const avatarHtml = imgUrl
       ? `<img src="${escAttr(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`
       : `<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${esc(av)}</div>`;
-    return `<div class="pub-item" id="pi-${escAttr(p.id)}">
+    return `<div class="pub-item" id="pi-${escAttr(p.id)}" style="${isRemoved ? 'opacity:0.6;border-left:3px solid #C62828;' : ''}">
       ${avatarHtml}
       <div class="pi-body">
         <div class="pi-title">${esc(p.title)}</div>
@@ -800,7 +802,7 @@ function renderPublished(items) {
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
         <button class="act act-edit" onclick="openEdit('${escAttr(p.id)}','published')" style="font-size:12px;padding:5px 10px;">✏️ Edit</button>
-        <button class="act act-unpub" onclick="unpubContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">↩ Remove</button>
+        ${isRemoved ? `<button class="act act-restore" onclick="restoreContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">↩ Restore</button>` : `<button class="act act-unpub" onclick="unpubContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">Remove</button>`}
       </div>
     </div>`;
   }).join('');
@@ -808,12 +810,14 @@ function renderPublished(items) {
 }
 
 async function unpubContent(id) {
-  if (!confirm('Remove this from the live magazine?')) return;
+  if (!confirm('Remove this post from the live magazine? It will stay here as Removed so you can republish it.')) return;
   try {
     await withAuthRetry(() => SG.unpublishContent(id));
-    allPubContent = allPubContent.filter(p => p.id !== id);
+    // Mark as inactive in local state but KEEP in list so admin can see/restore
+    const p = allPubContent.find(x => x.id === id);
+    if (p) p.is_active = false;
     filterPublished();
-    toast('↩ Removed from live magazine');
+    toast('↩ Removed from live magazine — still visible here as Removed');
   } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
@@ -918,7 +922,7 @@ async function addToHero(id) {
     await withAuthRetry(() => SG.updatePublished(id, { section_slug: 'hero', priority: heroItems.length + 1 }));
     p.section_slug = 'hero'; p.priority = heroItems.length + 1;
     renderHeroSlides(); renderHeroQueue();
-    toast('✅ Added to Hero slider');
+    toast('✅ Added to Hero slider — refresh the homepage to see it');
   } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
@@ -950,6 +954,16 @@ async function moveHero(id, dir) {
     ]));
     renderHeroSlides();
     toast('↕ Reordered');
+  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
+}
+
+async function restoreContent(id) {
+  try {
+    await withAuthRetry(() => SG.updatePublished(id, { is_active: true }));
+    const p = allPubContent.find(x => x.id === id);
+    if (p) p.is_active = true;
+    filterPublished();
+    toast('✅ Post restored to live magazine');
   } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
