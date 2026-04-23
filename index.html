@@ -479,12 +479,15 @@ let currentZone='all';
 // STATIC DEMO DATA — balanced 5-zone baseline
 // ═══════════════════════════════════════════════════════════
 const DEMO = {
+  // Note: `titleHtml` is trusted HTML (used only for hardcoded demo data
+  // with <em> emphasis). `title` must always be plain text and must be
+  // escaped at render time. Live content from Supabase uses `title` only.
   hero:[
-    {zone:'gujarat',   emoji:'🏺',hg:'hg4',cat:'Achievement', title:'Gujarat crosses <em>500 SarvaMitras</em> — franchise model reimagined', para:'Led by Zone Head Amit Desai, Gujarat now has 500+ active franchise partners. A new onboarding playbook every zone is studying.',by:'Amit Desai',av:'AD'},
-    {zone:'karnataka', emoji:'🌿',hg:'hg2',cat:'Field Story',  title:'Health camp in Thrissur — <em>200 families</em> checked for the first time', para:'A grandmother who had never seen a BP machine. A child who got his first eye test. That is what our health initiative means.',by:'Deepa Nair',av:'DN'},
-    {zone:'maharashtra',emoji:'🌾',hg:'hg1',cat:'Cover Story', title:'SarvaGram crosses <em>1.5 Lakh</em> households — built village by village', para:'From Vidarbha to coastal Kochi, our SarvaMitras touch 150,000 rural families — 150,000 dreams financed and nurtured.',by:'Editorial Team',av:'ET'},
-    {zone:'rajasthan', emoji:'🏜️',hg:'hg3',cat:'Achievement', title:'Rajasthan achieves <em>Zero NPA</em> — 12 officers, a perfect quarter', para:'Zero non-performing assets, 100% on-time repayments. Sunil Yadav\'s team sets the national benchmark for Q1 2026.',by:'Sunil Yadav',av:'SY'},
-    {zone:'telangana', emoji:'⚡',hg:'hg5',cat:'Innovation',  title:'Telangana wins <em>National Rural Finance Award</em> at NABARD Summit', para:'Recognised for outstanding rural credit outreach in FY 2025-26. Telangana\'s district-level strategy is now a national case study.',by:'Zone Team',av:'ZT'},
+    {zone:'gujarat',   emoji:'🏺',hg:'hg4',cat:'Achievement', title:'Gujarat crosses 500 SarvaMitras — franchise model reimagined', titleHtml:'Gujarat crosses <em>500 SarvaMitras</em> — franchise model reimagined', para:'Led by Zone Head Amit Desai, Gujarat now has 500+ active franchise partners. A new onboarding playbook every zone is studying.',by:'Amit Desai',av:'AD'},
+    {zone:'karnataka', emoji:'🌿',hg:'hg2',cat:'Field Story',  title:'Health camp in Thrissur — 200 families checked for the first time', titleHtml:'Health camp in Thrissur — <em>200 families</em> checked for the first time', para:'A grandmother who had never seen a BP machine. A child who got his first eye test. That is what our health initiative means.',by:'Deepa Nair',av:'DN'},
+    {zone:'maharashtra',emoji:'🌾',hg:'hg1',cat:'Cover Story', title:'SarvaGram crosses 1.5 Lakh households — built village by village', titleHtml:'SarvaGram crosses <em>1.5 Lakh</em> households — built village by village', para:'From Vidarbha to coastal Kochi, our SarvaMitras touch 150,000 rural families — 150,000 dreams financed and nurtured.',by:'Editorial Team',av:'ET'},
+    {zone:'rajasthan', emoji:'🏜️',hg:'hg3',cat:'Achievement', title:'Rajasthan achieves Zero NPA — 12 officers, a perfect quarter', titleHtml:'Rajasthan achieves <em>Zero NPA</em> — 12 officers, a perfect quarter', para:'Zero non-performing assets, 100% on-time repayments. Sunil Yadav\'s team sets the national benchmark for Q1 2026.',by:'Sunil Yadav',av:'SY'},
+    {zone:'telangana', emoji:'⚡',hg:'hg5',cat:'Innovation',  title:'Telangana wins National Rural Finance Award at NABARD Summit', titleHtml:'Telangana wins <em>National Rural Finance Award</em> at NABARD Summit', para:'Recognised for outstanding rural credit outreach in FY 2025-26. Telangana\'s district-level strategy is now a national case study.',by:'Zone Team',av:'ZT'},
   ],
   highlights:[
     {category:'achievement',zone_slug:'gujarat',   emp_name:'Amit Desai',         title:'Gujarat crosses 500 active SarvaMitras — new zonal record',           published_at:new Date().toISOString()},
@@ -615,7 +618,7 @@ function ago(dt){const d=Math.floor((Date.now()-new Date(dt))/864e5);return d<=0
 
 // Merge live + demo data per section
 // All Zones → 5 items (one per zone)
-// Specific zone → 3 items from that zone
+// Specific zone → 3 items from that zone (plus company-wide 'all' posts)
 function mergeSection(demoItems, liveItems, zone){
   const limit = zone==='all' ? 5 : 3;
 
@@ -626,13 +629,12 @@ function mergeSection(demoItems, liveItems, zone){
     return [...liveItems,...demoFill].slice(0,5);
   }
 
-  // Specific zone — collect up to 3
-  const liveZone = (liveItems||[]).filter(l=>l.zone_slug===zone);
+  // Specific zone — collect up to limit, including company-wide posts
+  const liveZone = (liveItems||[]).filter(l=>l.zone_slug===zone || l.zone_slug==='all');
   const demoZone = demoItems.filter(d=>(d.zone_slug===zone||d.zone===zone));
   const merged = [...liveZone];
   for(const d of demoZone){
     if(merged.length>=limit) break;
-    // avoid duplicate by checking title
     if(!merged.find(m=>m.title===d.title)) merged.push(d);
   }
   return merged.slice(0,limit);
@@ -650,9 +652,11 @@ function liveBySection(slug){
 }
 
 // mergeSection3 — returns up to 10 items (all zones) or 6 items (specific zone)
-// Caller decides how many to show initially; extras go to load-more
+// Caller decides how many to show initially; extras go to load-more.
+// FIX: zone views now also include zone_slug='all' posts (company-wide announcements)
+// so an HR announcement published to 'all' doesn't vanish when user picks a zone.
 function mergeSection3(demoBase, demoExtra, liveItems, zone){
-  const limit = zone==='all' ? 10 : 6; // fetch more, display fewer initially
+  const limit = zone==='all' ? 10 : 6;
 
   if(zone==='all'){
     const live=liveItems||[];
@@ -661,7 +665,8 @@ function mergeSection3(demoBase, demoExtra, liveItems, zone){
     return [...live,...demoFill].slice(0,limit);
   }
 
-  const live = (liveItems||[]).filter(l=>l.zone_slug===zone);
+  // Zone view: include posts for this zone AND company-wide posts (zone_slug='all')
+  const live = (liveItems||[]).filter(l=>l.zone_slug===zone || l.zone_slug==='all');
   const baseZone = demoBase.filter(d=>(d.zone_slug===zone||d.zone===zone));
   const extraZone = (demoExtra&&demoExtra[zone])||[];
   const pool = [...live,...baseZone,...extraZone];
@@ -677,14 +682,21 @@ function mergeSection3(demoBase, demoExtra, liveItems, zone){
 // ═══════════════════════════════════════════════════════════
 // HERO SLIDER
 // ═══════════════════════════════════════════════════════════
-let heroIdx=0, heroTimer;
+let heroIdx=0, heroTimer=null;
 
 function buildHero(){
+  // FIX: stop any previously running auto-rotate before rebuilding.
+  // Without this, every zone switch + every live-data load spawns another
+  // interval, leading to runaway CPU on low-end phones.
+  if(heroTimer){ clearInterval(heroTimer); heroTimer=null; }
+
   const track=document.getElementById('hero-track');
   const dotsEl=document.getElementById('hero-dots');
   track.innerHTML=''; dotsEl.innerHTML='';
 
-  // Hero slides: admin-pinned 'hero' section takes priority, falls back to demo
+  // Hero slides: admin-pinned 'hero' section takes priority, falls back to demo.
+  // Note: `title` is plain text; `titleHtml` (if present) is trusted HTML allowed
+  // only on hardcoded demo rows. Live rows never set titleHtml.
   const liveHero = liveBySection('hero').slice(0,5);
   const slides = liveHero.length > 0
     ? liveHero.map(l=>({
@@ -692,8 +704,8 @@ function buildHero(){
         emoji:EMO[l.category]||'🌾',
         hg:HGS[ZONES.indexOf(l.zone_slug)%5]||'hg1',
         cat:l.category==='achievement'?'Achievement':l.category==='story'?'Field Story':l.category==='announcement'?'Announcement':'Cover Story',
-        title:esc(l.title),
-        para:esc((l.content||'').slice(0,200)),
+        title:l.title||'',
+        para:(l.content||'').slice(0,200),
         by:l.emp_name,
         av:initials(l.emp_name),
         img:l.extra_data&&l.extra_data.image_url
@@ -708,10 +720,13 @@ function buildHero(){
     const zbg=ZBG[s.zone]||'rgba(255,255,255,.1)';
     const slide=document.createElement('div');
     slide.className='hero-slide';
+    // Use safeImgUrl+escAttr to block javascript: URIs and attribute-break XSS
+    const safeImg = s.img ? (typeof SG!=='undefined'&&SG.safeImgUrl ? SG.safeImgUrl(s.img) : (/^https?:\/\//i.test(s.img) ? s.img : '')) : '';
+    const imgAttr = safeImg ? (typeof SG!=='undefined'&&SG.escAttr ? SG.escAttr(safeImg) : esc(safeImg).replace(/"/g,'&quot;')) : '';
     slide.innerHTML=`
       <div class="hero-img-box">
-        ${s.img
-          ? `<img src="${esc(s.img)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<div class=\\'hero-img-inner ${s.hg}\\' style=\\'font-size:72px;\\'>${s.emoji}</div>'"/>`
+        ${safeImg
+          ? `<img src="${imgAttr}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>`
           : `<div class="hero-img-inner ${s.hg}" style="font-size:72px;">${s.emoji}</div>`
         }
         <span class="hero-badge">${esc(s.cat)}</span>
@@ -719,8 +734,8 @@ function buildHero(){
       </div>
       <div>
         <div class="hero-cat">${esc(s.cat)} · April 2026</div>
-        <div class="hero-title">${s.title}</div>
-        <div class="hero-para">${s.para}${typeof s.para==='string'&&s.para.length>=200?'…':''}</div>
+        <div class="hero-title">${s.titleHtml || esc(s.title)}</div>
+        <div class="hero-para">${esc(s.para)}${typeof s.para==='string'&&s.para.length>=200?'…':''}</div>
         <div class="hero-byline">
           <div class="hero-av" style="background:${ZC[s.zone]||'var(--sf)'};">${esc(initials(s.by||s.av||''))}</div>
           <div class="hero-by">By <strong>${esc(s.by||'')}</strong> · ${ZN[s.zone]||'SarvaGram'}</div>
@@ -732,6 +747,13 @@ function buildHero(){
     dot.onclick=()=>heroTo(i);
     dotsEl.appendChild(dot);
   });
+
+  // Reset position and restart auto-rotate (only if >1 slide)
+  heroIdx = 0;
+  track.style.transform = 'translateX(0)';
+  if(actualSlides.length > 1){
+    heroTimer = setInterval(()=>heroBy(1), 5500);
+  }
 }
 
 function heroTo(i){
@@ -1026,14 +1048,19 @@ async function doSubmit(){
   const title=(document.getElementById('f-title')?.value||'').trim();
   const content=(document.getElementById('f-content')?.value||'').trim();
   if(!empId){showErr('Please enter your Employee ID.');return;}
+  if(empId.length<3||empId.length>40){showErr('Employee ID must be 3–40 characters.');return;}
   if(!name){showErr('Please enter your name.');return;}
-  if(!zone){showErr('Please select your zone.');return;}  if(!title){showErr('Please enter a title.');return;}
+  if(name.length<2||name.length>100){showErr('Name must be 2–100 characters.');return;}
+  if(!zone){showErr('Please select your zone.');return;}
+  if(!title){showErr('Please enter a title.');return;}
+  if(title.length<3||title.length>200){showErr('Title must be 3–200 characters.');return;}
   if(!content){showErr('Please write your content.');return;}
-  const extra={branch:document.getElementById('f-branch')?.value||''};
-  if(currentCat==='story')extra.village=document.getElementById('f-village')?.value||'';
-  if(currentCat==='idea')extra.problem=document.getElementById('f-prob')?.value||'';
-  if(currentCat==='achievement')extra.team=document.getElementById('f-team')?.value||'';
-  if(currentCat==='announcement'){extra.date=document.getElementById('f-date')?.value||'';extra.location=document.getElementById('f-loc')?.value||'';}
+  if(content.length<10||content.length>5000){showErr('Content must be 10–5000 characters.');return;}
+  const extra={branch:(document.getElementById('f-branch')?.value||'').slice(0,100)};
+  if(currentCat==='story')extra.village=(document.getElementById('f-village')?.value||'').slice(0,100);
+  if(currentCat==='idea')extra.problem=(document.getElementById('f-prob')?.value||'').slice(0,500);
+  if(currentCat==='achievement')extra.team=(document.getElementById('f-team')?.value||'').slice(0,100);
+  if(currentCat==='announcement'){extra.date=(document.getElementById('f-date')?.value||'').slice(0,20);extra.location=(document.getElementById('f-loc')?.value||'').slice(0,100);}
   const btn=document.getElementById('sub-btn');
   btn.disabled=true;btn.textContent='Submitting…';
   try{
@@ -1043,7 +1070,9 @@ async function doSubmit(){
     document.getElementById('modal-success').style.display='block';
   }catch(e){
     console.error(e);
-    showErr('Submission failed: '+(e.message||JSON.stringify(e)));
+    // Surface rate-limit error plainly to the user
+    const msg = e && e.message ? e.message : 'Submission failed. Please try again.';
+    showErr(msg.includes('Rate limit') ? 'You have reached the 5-per-hour submission limit. Please try again later.' : msg);
     btn.disabled=false;btn.textContent='Submit for Review →';
   }
 }
@@ -1109,17 +1138,28 @@ function closeSA(){
 // ═══════════════════════════════════════════════════════════
 // INIT — load from Supabase then render
 // ═══════════════════════════════════════════════════════════
-// Always render demo data immediately — no waiting
+// Always render demo data immediately — no waiting.
+// buildHero() manages its own auto-rotate interval internally, so no
+// duplicate setInterval here.
 renderDyn();
 buildHero();
-heroTimer = setInterval(()=>heroBy(1), 5500);
 renderAll();
 
-// Then try to load live Supabase data on top
+// Then try to load live Supabase data on top.
+// Prefers the new per-section getHomepage() for scalability. Falls back to the
+// legacy flat getPublished() if an older supabase.js is deployed.
 (async function loadLive(){
   try{
-    if(typeof SG === 'undefined') return; // supabase.js not loaded, demo data already showing
-    const [pub, bdays] = await Promise.all([SG.getPublished(), SG.getBirthdays()]);
+    if(typeof SG === 'undefined') return;
+    let pub;
+    if(typeof SG.getHomepage === 'function'){
+      // Fetch every section with explicit limits (constant-time even at 5000+ posts)
+      const grouped = await SG.getHomepage('all');
+      pub = Object.values(grouped).flat();
+    } else {
+      pub = await SG.getPublished();
+    }
+    const bdays = await SG.getBirthdays();
     allPublished = pub || [];
     allBirthdays = bdays || [];
     if(allPublished.length > 0 || allBirthdays.length > 0){

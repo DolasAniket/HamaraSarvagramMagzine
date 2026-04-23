@@ -30,12 +30,15 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 .pg-head h1{font-family:'Playfair Display',serif;font-size:24px;color:var(--bl);font-weight:700;margin-bottom:4px;}
 .pg-head p{font-size:13px;color:var(--mu);}
 
+.privacy-note{background:#FFF8E1;border-left:3px solid #F9A825;border-radius:6px;padding:10px 14px;font-size:12px;color:#6D4C00;line-height:1.5;margin:14px 0 8px;}
+
 .lookup-box{background:var(--card);border-radius:var(--radius);border:.5px solid var(--bdr);padding:16px;margin:16px 0;}
 .lookup-label{font-size:13px;font-weight:600;margin-bottom:10px;}
 .lookup-row{display:flex;gap:10px;}
 .lookup-row input{flex:1;padding:10px 13px;border:1px solid rgba(0,0,0,.12);border-radius:8px;font-size:14px;font-family:'Mukta',sans-serif;outline:none;}
 .lookup-row input:focus{border-color:var(--bl);}
 .btn-bl{padding:10px 18px;border-radius:8px;background:var(--bl);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Mukta',sans-serif;white-space:nowrap;}
+.btn-bl:disabled{background:#bbb;cursor:default;}
 
 .sp{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700;}
 .sp-pub{background:var(--gr-l);color:var(--gr-d);}
@@ -81,14 +84,14 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 <body>
 <div class="overlay" id="overlay" onclick="closeMM()"></div>
 <div class="mm" id="mm">
-  <button class="mm-x" onclick="closeMM()">✕</button>
+  <button class="mm-x" onclick="closeMM()" aria-label="Close menu">✕</button>
   <a class="mm-item" href="index.html">📰 Magazine</a>
   <a class="mm-item" href="submit.html">✏️ Submit Thought</a>
   <a class="mm-item" href="mysubs.html">📋 My Submissions</a>
 </div>
 <nav class="nav">
   <div style="display:flex;align-items:center;gap:10px;">
-    <button class="hamburger" onclick="openMM()"><span></span><span></span><span></span></button>
+    <button class="hamburger" onclick="openMM()" aria-label="Open menu"><span></span><span></span><span></span></button>
     <a class="nav-brand" href="index.html">Hamara SarvaGram</a>
   </div>
   <div class="nav-links">
@@ -100,11 +103,16 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 
 <div class="wrap">
   <div class="pg-head"><h1>My Submissions</h1><p>Track the status of your contributions.</p></div>
+
+  <div class="privacy-note">
+    🔒 <strong>Privacy note:</strong> Enter your Employee ID to see your submissions. Anyone sharing this device can see the same list — consider signing out of shared devices or using private/incognito mode.
+  </div>
+
   <div class="lookup-box">
     <div class="lookup-label">Enter your Employee ID to see your submissions</div>
     <div class="lookup-row">
-      <input type="text" id="emp-input" placeholder="e.g. EMP-1042" onkeydown="if(event.key==='Enter')lookup()"/>
-      <button class="btn-bl" onclick="lookup()">Look Up</button>
+      <input type="text" id="emp-input" placeholder="e.g. EMP-1042" maxlength="40" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookup()"/>
+      <button class="btn-bl" id="lookup-btn" onclick="lookup()">Look Up</button>
     </div>
   </div>
   <div id="results"></div>
@@ -118,60 +126,113 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 
 <script src="supabase.js"></script>
 <script>
-const statusMeta={pending:{label:'Under Review',pill:'sp-rev',step:1},approved:{label:'Approved',pill:'sp-app',step:2},rejected:{label:'Not Selected',pill:'sp-rej',step:1},published:{label:'Published',pill:'sp-pub',step:3}};
-const catLabels={thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
-const zoneNames={all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
-const sectionNames={'top-highlight':'Top Highlight','whats-new':"What's New",achievements:'Achievements',ideas:'Ideas',spotlight:'Spotlight','on-ground':'On-Ground','quick-bytes':'Quick Bytes','zone-news':'Zone News'};
+const statusMeta = {
+  pending:   { label: 'Under Review',  pill: 'sp-rev', step: 1 },
+  approved:  { label: 'Approved',      pill: 'sp-app', step: 2 },
+  rejected:  { label: 'Not Selected',  pill: 'sp-rej', step: 1 },
+  published: { label: 'Published',     pill: 'sp-pub', step: 3 },
+};
+const catLabels    = (typeof SG !== 'undefined' && SG.CAT_LABELS)  || {thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
+const zoneNames    = (typeof SG !== 'undefined' && SG.ZONE_NAMES)  || {all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
+const sectionNames = {
+  hero:'Hero Slider','top-highlight':'Top Highlight','whats-new':"What's New",
+  achievements:'Achievements',ideas:'Ideas',spotlight:'Spotlight',
+  'on-ground':'On-Ground','quick-bytes':'Quick Bytes','zone-news':'Zone News'
+};
+const esc = (typeof SG !== 'undefined' && SG.esc) || function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
 
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function ago(dt){const d=Math.floor((Date.now()-new Date(dt))/864e5);return d<=0?'Today':d===1?'Yesterday':d+'d ago';}
+function ago(dt){
+  const ms = Date.now() - new Date(dt);
+  if(ms < 0) return 'Just now';
+  const d = Math.floor(ms / 864e5);
+  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d + 'd ago';
+}
 
 function buildTrack(status){
-  const steps=['Submitted','In Review','Approved','Published'];
-  const sm=statusMeta[status]||statusMeta.pending;
-  const isRej=status==='rejected';
-  let html='<div class="track">';
-  steps.forEach((label,i)=>{
-    let dc='td-idle',lc='tl-idle';
-    if(isRej){if(i===0){dc='td-done';lc='tl-done';}else if(i===1)dc='td-rej';}
-    else{if(i<sm.step){dc='td-done';lc='tl-done';}else if(i===sm.step)dc='td-cur';}
-    const sym=isRej&&i===1?'✗':i<sm.step&&!isRej?'✓':i===sm.step&&!isRej?'●':'○';
-    html+=`<div class="tr-step"><div class="tr-dot ${dc}">${sym}</div><div class="tr-label">${label}</div></div>`;
-    if(i<steps.length-1)html+=`<div class="tr-line ${lc}"></div>`;
+  const steps = ['Submitted','In Review','Approved','Published'];
+  const sm = statusMeta[status] || statusMeta.pending;
+  const isRej = status === 'rejected';
+  let html = '<div class="track">';
+  steps.forEach((label,i) => {
+    let dc = 'td-idle', lc = 'tl-idle';
+    if(isRej){
+      if(i === 0){ dc = 'td-done'; lc = 'tl-done'; }
+      else if(i === 1) dc = 'td-rej';
+    } else {
+      if(i < sm.step){ dc = 'td-done'; lc = 'tl-done'; }
+      else if(i === sm.step) dc = 'td-cur';
+    }
+    const sym = isRej && i === 1 ? '✗'
+              : i < sm.step && !isRej ? '✓'
+              : i === sm.step && !isRej ? '●'
+              : '○';
+    html += `<div class="tr-step"><div class="tr-dot ${dc}">${sym}</div><div class="tr-label">${label}</div></div>`;
+    if(i < steps.length - 1) html += `<div class="tr-line ${lc}"></div>`;
   });
-  return html+'</div>';
+  return html + '</div>';
 }
 
 async function lookup(){
-  const empId=document.getElementById('emp-input').value.trim();
-  if(!empId){document.getElementById('results').innerHTML='<div class="empty"><div class="empty-icon">🔍</div>Please enter your Employee ID.</div>';return;}
-  document.getElementById('results').innerHTML='<div class="loader"><span class="spinner"></span>Loading…</div>';
-  try{
-    const subs=await SG.getMySubmissions(empId);
+  const input = document.getElementById('emp-input');
+  const btn = document.getElementById('lookup-btn');
+  const resultsEl = document.getElementById('results');
+  const empId = input.value.trim();
+
+  if(!empId){
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>Please enter your Employee ID.</div>';
+    return;
+  }
+  if(empId.length < 3 || empId.length > 40){
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Employee ID must be 3–40 characters.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Looking up…';
+  resultsEl.innerHTML = '<div class="loader"><span class="spinner"></span>Loading…</div>';
+
+  try {
+    const subs = await SG.getMySubmissions(empId);
     if(!subs.length){
-      document.getElementById('results').innerHTML=`<div class="empty"><div class="empty-icon">📭</div>No submissions found for <strong>${esc(empId)}</strong>.<br/><br/><a href="submit.html" style="color:var(--bl);font-weight:600;">Submit your first thought →</a></div>`;
+      resultsEl.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>No submissions found for <strong>${esc(empId)}</strong>.<br/><br/><a href="submit.html" style="color:var(--bl);font-weight:600;">Submit your first thought →</a></div>`;
       return;
     }
-    let html=`<div style="font-size:13px;color:var(--mu);margin-bottom:12px;"><strong>${subs.length}</strong> submission${subs.length!==1?'s':''} found for <strong>${esc(empId)}</strong></div>`;
-    subs.forEach(s=>{
-      const sm=statusMeta[s.status]||statusMeta.pending;
-      html+=`<div class="sub-card">
-        <div class="sc-top"><div class="sc-title">${esc(s.title)}</div><span class="sp ${sm.pill}">${sm.label}</span></div>
-        <div class="sc-meta">${ago(s.created_at)} · <span class="cat-badge">${catLabels[s.category]||s.category}</span> · ${zoneNames[s.zone_slug]||s.zone_slug}</div>
-        <div class="sc-text">${esc((s.content||'').slice(0,120))}${s.content&&s.content.length>120?'…':''}</div>
-        ${s.status==='rejected'&&s.admin_note?`<div class="sc-note">ℹ️ ${esc(s.admin_note)}</div>`:''}
-        ${s.status==='published'&&s.section_slug?`<div class="sc-sec">📰 Published in: ${sectionNames[s.section_slug]||s.section_slug}</div>`:''}
+    let html = `<div style="font-size:13px;color:var(--mu);margin-bottom:12px;"><strong>${subs.length}</strong> submission${subs.length !== 1 ? 's' : ''} found for <strong>${esc(empId)}</strong></div>`;
+    subs.forEach(s => {
+      const sm = statusMeta[s.status] || statusMeta.pending;
+      const contentSnippet = (s.content || '').slice(0, 120);
+      const truncated = (s.content || '').length > 120;
+      html += `<div class="sub-card">
+        <div class="sc-top">
+          <div class="sc-title">${esc(s.title)}</div>
+          <span class="sp ${sm.pill}">${sm.label}</span>
+        </div>
+        <div class="sc-meta">${ago(s.created_at)} · <span class="cat-badge">${esc(catLabels[s.category] || s.category)}</span> · ${esc(zoneNames[s.zone_slug] || s.zone_slug)}</div>
+        <div class="sc-text">${esc(contentSnippet)}${truncated ? '…' : ''}</div>
+        ${s.status === 'rejected' && s.admin_note ? `<div class="sc-note">ℹ️ ${esc(s.admin_note)}</div>` : ''}
+        ${s.status === 'published' && s.section_slug ? `<div class="sc-sec">📰 Published in: ${esc(sectionNames[s.section_slug] || s.section_slug)}</div>` : ''}
         ${buildTrack(s.status)}
       </div>`;
     });
-    document.getElementById('results').innerHTML=html;
-  }catch(e){
-    document.getElementById('results').innerHTML='<div class="empty">Could not load submissions. Please try again.</div>';
+    resultsEl.innerHTML = html;
+  } catch(e) {
+    console.error(e);
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Could not load submissions. Please try again in a moment.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Look Up';
   }
 }
 
-const urlEmp=new URLSearchParams(location.search).get('emp');
-if(urlEmp){document.getElementById('emp-input').value=urlEmp;lookup();}
+// URL parameter support: ?emp=EMP-1042 still works for convenience (e.g. links
+// from the submit success page), but note this leaks the ID to browser history
+// and referrer headers. The privacy note above warns users.
+const urlEmp = new URLSearchParams(location.search).get('emp');
+if(urlEmp){
+  document.getElementById('emp-input').value = urlEmp;
+  lookup();
+}
+
 function openMM(){document.getElementById('mm').classList.add('open');document.getElementById('overlay').classList.add('show');}
 function closeMM(){document.getElementById('mm').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
 </script>

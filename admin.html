@@ -303,7 +303,6 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
     </div>
     <div id="pub-list"><div class="loader"><span class="spinner"></span></div></div>
   </div>
-</div>
 
   <!-- HERO SLIDER MANAGEMENT -->
   <div class="panel" id="panel-hero">
@@ -331,6 +330,7 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
       </div>
     </div>
   </div>
+</div><!-- /admin-shell -->
 <div class="edit-overlay" id="edit-overlay">
   <div class="edit-modal">
     <div class="em-head">
@@ -387,549 +387,608 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 
 <script src="supabase.js"></script>
 <script>
-const SECTIONS=[
-  {slug:'hero',name:'Hero Slider',max:5},
-  {slug:'top-highlight',name:'Top Highlight',max:1},
-  {slug:'whats-new',name:"What's New",max:3},
-  {slug:'achievements',name:'Achievements',max:4},
-  {slug:'ideas',name:'Ideas',max:4},
-  {slug:'spotlight',name:'Spotlight',max:2},
-  {slug:'on-ground',name:'On-Ground',max:4},
-  {slug:'quick-bytes',name:'Quick Bytes',max:5},
-  {slug:'zone-news',name:'Zone News',max:6},
-];
-const SEC_NAMES=Object.fromEntries(SECTIONS.map(s=>[s.slug,s.name]));
-const CAT_LABELS={thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
-const ZONE_NAMES={all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
+// ═══════════════════════════════════════════════════════════
+// ADMIN PANEL JS (revised)
+// ═══════════════════════════════════════════════════════════
+// Uses SG helpers from supabase.js. All mutating calls require a valid
+// admin session token (set via SG.adminLogin).
+// ═══════════════════════════════════════════════════════════
 
-let allSubs=[], currentFilter='all', selectedIds=new Set(), allPubContent=[];
+const SECTIONS = SG.SECTIONS;
+const SEC_NAMES = Object.fromEntries(SECTIONS.map(s => [s.slug, s.name]));
+const CAT_LABELS = SG.CAT_LABELS;
+const ZONE_NAMES = SG.ZONE_NAMES;
+const esc = SG.esc;
+const escAttr = SG.escAttr;
+const safeImgUrl = SG.safeImgUrl;
 
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function ago(dt){const d=Math.floor((Date.now()-new Date(dt))/864e5);return d<=0?'Today':d===1?'Yesterday':d+'d ago';}
-function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'??';}
+let allSubs = [], currentFilter = 'all', selectedIds = new Set(), allPubContent = [];
 
-function toast(msg,dur=2500){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),dur);
+function ago(dt) {
+  const ms = Date.now() - new Date(dt);
+  if (ms < 0) return 'Just now';
+  const d = Math.floor(ms / 864e5);
+  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d + 'd ago';
+}
+function initials(n) { return (n || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'; }
+
+function toast(msg, dur = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
 }
 
-async function doLogin(){
-  const pw=document.getElementById('pw-input').value;
-  try{
-    await SG.adminLogin(pw);
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('admin-shell').style.display='block';
-    await loadSubs();await loadPublished();
-  }catch(e){document.getElementById('login-err').style.display='block';}
-}
-
-async function loadSubs(){
-  try{
-    allSubs=await SG.getAllSubmissions();
-    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();
-  }catch(e){
-    document.getElementById('review-list').innerHTML='<div class="empty">Could not load. Check Supabase.</div>';
+// Handle 401/403 — session expired — globally.
+async function withAuthRetry(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    if (e && (e.status === 401 || e.status === 403 || e.needsReauth)) {
+      SG.adminLogout();  // clears token + redirects to login
+      throw new Error('Session expired. Please sign in again.');
+    }
+    throw e;
   }
 }
 
-function updateStats(){
-  const cnt=s=>allSubs.filter(x=>x.status===s).length;
-  document.getElementById('st-total').textContent=allSubs.length;
-  document.getElementById('st-pend').textContent=cnt('pending');
-  document.getElementById('st-app').textContent=cnt('approved');
-  document.getElementById('st-pub').textContent=cnt('published');
-  document.getElementById('st-rej').textContent=cnt('rejected');
+// ── LOGIN ────────────────────────────────────────────────
+async function doLogin() {
+  const pwEl = document.getElementById('pw-input');
+  const errEl = document.getElementById('login-err');
+  const btn = document.querySelector('.login-btn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    await SG.adminLogin(pwEl.value);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-shell').style.display = 'block';
+    pwEl.value = '';
+    await loadSubs();
+    await loadPublished();
+  } catch (e) {
+    errEl.textContent = 'Incorrect password. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In →';
+  }
 }
 
-function filterSubs(status,btn){
-  currentFilter=status;
-  document.querySelectorAll('#panel-review .fb-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+// ── LOAD ─────────────────────────────────────────────────
+async function loadSubs() {
+  try {
+    allSubs = await withAuthRetry(() => SG.getAllSubmissions());
+    updateStats(); applyFilters();
+    renderCapBars(); renderReadyQueue(); renderRecentPub();
+  } catch (e) {
+    document.getElementById('review-list').innerHTML =
+      `<div class="empty">Could not load submissions. ${esc(e.message || '')}</div>`;
+  }
+}
+
+function updateStats() {
+  const cnt = s => allSubs.filter(x => x.status === s).length;
+  document.getElementById('st-total').textContent = allSubs.length;
+  document.getElementById('st-pend').textContent = cnt('pending');
+  document.getElementById('st-app').textContent = cnt('approved');
+  document.getElementById('st-pub').textContent = cnt('published');
+  document.getElementById('st-rej').textContent = cnt('rejected');
+}
+
+function filterSubs(status, btn) {
+  currentFilter = status;
+  document.querySelectorAll('#panel-review .fb-btn').forEach(b => b.classList.remove('active'));
+  btn && btn.classList.add('active');
   applyFilters();
 }
 
-function applyFilters(){
-  const zone=document.getElementById('zone-filter').value;
-  const q=(document.getElementById('search-input').value||'').toLowerCase();
-  let list=allSubs;
-  if(currentFilter==='unpublished'){
-    // Show items that were published and then unpublished (status=approved but were published)
-    list=list.filter(s=>s.status==='approved'&&s.published_at);
-  } else if(currentFilter!=='all'){
-    list=list.filter(s=>s.status===currentFilter);
+function applyFilters() {
+  const zone = document.getElementById('zone-filter').value;
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  let list = allSubs;
+  if (currentFilter === 'unpublished') {
+    list = list.filter(s => s.status === 'approved' && s.published_at);
+  } else if (currentFilter !== 'all') {
+    list = list.filter(s => s.status === currentFilter);
   }
-  if(zone)list=list.filter(s=>s.zone_slug===zone);
-  if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
+  if (zone) list = list.filter(s => s.zone_slug === zone);
+  if (q) list = list.filter(s => ((s.title||'') + (s.content||'') + (s.emp_name||'') + (s.emp_id||'')).toLowerCase().includes(q));
   renderReview(list);
 }
 
-const statusMap={
-  pending:{cls:'rs-pend',lbl:'Pending'},
-  approved:{cls:'rs-app',lbl:'Approved'},
-  rejected:{cls:'rs-rej',lbl:'Rejected'},
-  published:{cls:'rs-pub',lbl:'Published'},
-  unpublished:{cls:'rs-unp',lbl:'Unpublished'}
+const statusMap = {
+  pending:     { cls: 'rs-pend', lbl: 'Pending' },
+  approved:    { cls: 'rs-app',  lbl: 'Approved' },
+  rejected:    { cls: 'rs-rej',  lbl: 'Rejected' },
+  published:   { cls: 'rs-pub',  lbl: 'Published' },
+  unpublished: { cls: 'rs-unp',  lbl: 'Unpublished' },
 };
 
-function renderReview(list){
-  if(!list.length){document.getElementById('review-list').innerHTML='<div class="empty">No submissions found.</div>';return;}
-  let html='';
-  list.forEach(s=>{
-    const sm=statusMap[s.status]||statusMap.pending;
-    const canApp=s.status==='pending';
-    const canPub=s.status==='approved';
-    const canRej=s.status==='pending'||s.status==='approved';
-    const isPublished=s.status==='published';
-    const prio=s.priority||3;
-    const dots=[1,2,3].map(i=>`<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${s.id}',${i})" title="Priority ${i}"></div>`).join('');
-    const secOpts=SECTIONS.map(sec=>`<option value="${sec.slug}"${s.section_slug===sec.slug?' selected':''}>${sec.name}</option>`).join('');
-    const imgHtml=s.extra_data&&s.extra_data.image_url?`<img src="${esc(s.extra_data.image_url)}" class="rc-img" onerror="this.style.display='none'"/>`:''
-    html+=`<div class="rev-card${selectedIds.has(s.id)?' selected':''}" id="rc-${s.id}">
+function renderReview(list) {
+  const root = document.getElementById('review-list');
+  if (!list.length) { root.innerHTML = '<div class="empty">No submissions found.</div>'; return; }
+  let html = '';
+  list.forEach(s => {
+    const sm = statusMap[s.status] || statusMap.pending;
+    const canApp = s.status === 'pending';
+    const canPub = s.status === 'approved';
+    const canRej = s.status === 'pending' || s.status === 'approved';
+    const isPublished = s.status === 'published';
+    const prio = s.priority || 3;
+    const dots = [1,2,3].map(i => `<div class="pdot p${i}${prio>=i?' on':''}" onclick="setPrio('${escAttr(s.id)}',${i})" title="Priority ${i}"></div>`).join('');
+    const secOpts = SECTIONS.map(sec => `<option value="${escAttr(sec.slug)}"${s.section_slug===sec.slug?' selected':''}>${esc(sec.name)}</option>`).join('');
+    const imgUrl = safeImgUrl(s.extra_data && s.extra_data.image_url);
+    const imgHtml = imgUrl ? `<img src="${escAttr(imgUrl)}" class="rc-img" onerror="this.style.display='none'"/>` : '';
+    html += `<div class="rev-card${selectedIds.has(s.id) ? ' selected' : ''}" id="rc-${escAttr(s.id)}">
       <div class="rc-top">
-        <input type="checkbox" class="rc-cb" ${selectedIds.has(s.id)?'checked':''} onchange="toggleSel('${s.id}',this)"/>
-        <div class="rc-av">${initials(s.emp_name)}</div>
+        <input type="checkbox" class="rc-cb" ${selectedIds.has(s.id)?'checked':''} onchange="toggleSel('${escAttr(s.id)}',this)"/>
+        <div class="rc-av">${esc(initials(s.emp_name))}</div>
         <div class="rc-info">
           <div class="rc-name">${esc(s.emp_name)} <span style="font-weight:400;color:var(--mu);font-size:11px;">${esc(s.emp_id)}</span></div>
-          <div class="rc-meta">${ZONE_NAMES[s.zone_slug]||s.zone_slug} · ${ago(s.created_at)} · ${CAT_LABELS[s.category]||s.category}${s.extra_data&&s.extra_data.branch?' · '+esc(s.extra_data.branch):''}</div>
+          <div class="rc-meta">${esc(ZONE_NAMES[s.zone_slug]||s.zone_slug)} · ${esc(ago(s.created_at))} · ${esc(CAT_LABELS[s.category]||s.category)}${s.extra_data&&s.extra_data.branch?' · '+esc(s.extra_data.branch):''}</div>
         </div>
         <span class="rc-status ${sm.cls}">${sm.lbl}</span>
       </div>
       <div class="rc-content">${imgHtml}<div class="rc-title">${esc(s.title)}</div>${esc(s.content)}</div>
       <div class="rc-actions">
-        ${canApp?`<button class="act act-app" onclick="approve('${s.id}')">✓ Approve</button>`:''}
-        ${canRej?`<button class="act act-rej-btn" onclick="showRej('${s.id}')">✗ Reject</button>`:''}
-        ${canPub?`
-          <select class="rc-sel" id="sec-${s.id}"><option value="">Set section…</option>${secOpts}</select>
+        ${canApp ? `<button class="act act-app" onclick="approve('${escAttr(s.id)}')">✓ Approve</button>` : ''}
+        ${canRej ? `<button class="act act-rej-btn" onclick="showRej('${escAttr(s.id)}')">✗ Reject</button>` : ''}
+        ${canPub ? `
+          <select class="rc-sel" id="sec-${escAttr(s.id)}"><option value="">Set section…</option>${secOpts}</select>
           <div class="pdots" title="Priority: 1=High">${dots}</div>
-          <button class="act act-pub" onclick="publish('${s.id}')">🚀 Publish</button>
-        `:''}
-        ${isPublished?`
-          <span style="font-size:11px;color:var(--gr-d);">📰 ${SEC_NAMES[s.section_slug]||'—'}</span>
-          <button class="act act-unpub" onclick="unpublishSub('${s.id}')">↩ Unpublish</button>
-        `:''}
-        <button class="act act-edit" onclick="openEdit('${s.id}','submission')" style="margin-left:auto;">✏️ Edit</button>
+          <button class="act act-pub" onclick="publish('${escAttr(s.id)}')">🚀 Publish</button>
+        ` : ''}
+        ${isPublished ? `
+          <span style="font-size:11px;color:var(--gr-d);">📰 ${esc(SEC_NAMES[s.section_slug]||'—')}</span>
+          <button class="act act-unpub" onclick="unpublishSub('${escAttr(s.id)}')">↩ Unpublish</button>
+        ` : ''}
+        <button class="act act-edit" onclick="openEdit('${escAttr(s.id)}','submission')" style="margin-left:auto;">✏️ Edit</button>
       </div>
-      <div class="rej-box" id="rej-box-${s.id}">
-        <textarea id="rej-note-${s.id}" rows="2" placeholder="Reason for rejection (shown to employee)…"></textarea>
-        <button class="rej-confirm" onclick="confirmRej('${s.id}')">Confirm Rejection</button>
+      <div class="rej-box" id="rej-box-${escAttr(s.id)}">
+        <textarea id="rej-note-${escAttr(s.id)}" rows="2" placeholder="Reason for rejection (shown to employee)…" maxlength="500"></textarea>
+        <button class="rej-confirm" onclick="confirmRej('${escAttr(s.id)}')">Confirm Rejection</button>
       </div>
     </div>`;
   });
-  document.getElementById('review-list').innerHTML=html;
+  root.innerHTML = html;
 }
 
-// ── SELECTION & BULK ──────────────────────────────────────
-function toggleSel(id,cb){
-  if(cb.checked) selectedIds.add(id);
-  else selectedIds.delete(id);
-  const card=document.getElementById('rc-'+id);
-  if(card) card.classList.toggle('selected',cb.checked);
+// ── Selection & bulk ────────────────────────────────────
+function toggleSel(id, cb) {
+  if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+  const card = document.getElementById('rc-' + id);
+  if (card) card.classList.toggle('selected', cb.checked);
   updateBulkBar();
 }
-function updateBulkBar(){
-  const bar=document.getElementById('bulk-bar');
-  const count=selectedIds.size;
-  if(count>0){bar.classList.add('show');document.getElementById('bulk-count').textContent=count+' selected';}
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = selectedIds.size;
+  if (count > 0) { bar.classList.add('show'); document.getElementById('bulk-count').textContent = count + ' selected'; }
   else bar.classList.remove('show');
 }
-function clearSelection(){selectedIds.clear();applyFilters();}
+function clearSelection() { selectedIds.clear(); applyFilters(); }
 
-async function bulkApprove(){
-  if(!selectedIds.size) return;
-  const ids=[...selectedIds];
-  try{
-    await Promise.all(ids.map(id=>SG.updateSubmission(id,{status:'approved'})));
-    ids.forEach(id=>{const s=allSubs.find(x=>x.id===id);if(s)s.status='approved';});
-    clearSelection();updateStats();applyFilters();renderCapBars();renderReadyQueue();
+async function bulkApprove() {
+  if (!selectedIds.size) return;
+  const ids = [...selectedIds];
+  try {
+    await withAuthRetry(() => Promise.all(ids.map(id => SG.updateSubmission(id, { status: 'approved' }))));
+    ids.forEach(id => { const s = allSubs.find(x => x.id === id); if (s) s.status = 'approved'; });
+    clearSelection(); updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
     toast(`✅ ${ids.length} submissions approved`);
-  }catch(e){toast('❌ Bulk approve failed');}
+  } catch (e) { toast('❌ ' + (e.message || 'Bulk approve failed')); }
 }
 
-async function bulkReject(){
-  if(!selectedIds.size) return;
-  const ids=[...selectedIds];
-  try{
-    await Promise.all(ids.map(id=>SG.updateSubmission(id,{status:'rejected'})));
-    ids.forEach(id=>{const s=allSubs.find(x=>x.id===id);if(s)s.status='rejected';});
-    clearSelection();updateStats();applyFilters();
+async function bulkReject() {
+  if (!selectedIds.size) return;
+  const ids = [...selectedIds];
+  try {
+    await withAuthRetry(() => Promise.all(ids.map(id => SG.updateSubmission(id, { status: 'rejected' }))));
+    ids.forEach(id => { const s = allSubs.find(x => x.id === id); if (s) s.status = 'rejected'; });
+    clearSelection(); updateStats(); applyFilters();
     toast(`${ids.length} submissions rejected`);
-  }catch(e){toast('❌ Bulk reject failed');}
+  } catch (e) { toast('❌ ' + (e.message || 'Bulk reject failed')); }
 }
 
-// ── APPROVE / REJECT / PUBLISH / UNPUBLISH ────────────────
-async function approve(id){
-  const btn=document.querySelector(`#rc-${id} .act-app`);
-  if(btn)btn.disabled=true;
-  try{
-    await SG.updateSubmission(id,{status:'approved'});
-    const s=allSubs.find(x=>x.id===id);
-    if(s)s.status='approved';
-    updateStats();applyFilters();renderCapBars();renderReadyQueue();
+// ── Approve / Reject / Publish / Unpublish ──────────────
+async function approve(id) {
+  const btn = document.querySelector(`#rc-${CSS.escape(id)} .act-app`);
+  if (btn) btn.disabled = true;
+  try {
+    await withAuthRetry(() => SG.updateSubmission(id, { status: 'approved' }));
+    const s = allSubs.find(x => x.id === id); if (s) s.status = 'approved';
+    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
     toast('✅ Approved');
-  }catch(e){console.error(e);toast('❌ Error: '+JSON.stringify(e));if(btn)btn.disabled=false;}
+  } catch (e) { toast('❌ ' + (e.message || 'Approve failed')); if (btn) btn.disabled = false; }
 }
 
-function showRej(id){
-  document.querySelectorAll('.rej-box').forEach(el=>el.style.display='none');
-  const box=document.getElementById('rej-box-'+id);
-  if(box)box.style.display='block';
+function showRej(id) {
+  document.querySelectorAll('.rej-box').forEach(el => el.style.display = 'none');
+  const box = document.getElementById('rej-box-' + id);
+  if (box) box.style.display = 'block';
 }
 
-async function confirmRej(id){
-  const note=(document.getElementById('rej-note-'+id)?.value||'').trim();
-  try{
-    await SG.updateSubmission(id,{status:'rejected',admin_note:note||null});
-    const s=allSubs.find(x=>x.id===id);
-    if(s){s.status='rejected';s.admin_note=note;}
-    updateStats();applyFilters();renderCapBars();
+async function confirmRej(id) {
+  const note = (document.getElementById('rej-note-' + id)?.value || '').trim().slice(0, 500);
+  try {
+    await withAuthRetry(() => SG.updateSubmission(id, { status: 'rejected', admin_note: note || null }));
+    const s = allSubs.find(x => x.id === id);
+    if (s) { s.status = 'rejected'; s.admin_note = note; }
+    updateStats(); applyFilters(); renderCapBars();
     toast('Rejected');
-  }catch(e){toast('❌ Error: '+JSON.stringify(e));}
+  } catch (e) { toast('❌ ' + (e.message || 'Reject failed')); }
 }
 
-function setPrio(id,val){
-  const s=allSubs.find(x=>x.id===id);
-  if(s)s.priority=val;
-  const card=document.getElementById('rc-'+id);
-  if(card)card.querySelectorAll('.pdot').forEach((d,i)=>{d.classList.toggle('on',i<val);});
+function setPrio(id, val) {
+  const s = allSubs.find(x => x.id === id);
+  if (s) s.priority = val;
+  const card = document.getElementById('rc-' + id);
+  if (card) card.querySelectorAll('.pdot').forEach((d, i) => d.classList.toggle('on', i < val));
 }
 
-async function publish(id){
-  const secEl=document.getElementById('sec-'+id);
-  if(!secEl?.value){toast('⚠️ Please select a section first.');return;}
-  const s=allSubs.find(x=>x.id===id);
-  if(!s)return;
-  const btn=document.querySelector(`#rc-${id} .act-pub`);
-  if(btn)btn.disabled=true;
-  try{
-    await SG.publishSubmission(s,secEl.value,s.priority||3);
-    s.status='published';s.section_slug=secEl.value;
-    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
-    toast('🚀 Published to '+SEC_NAMES[secEl.value]);
-  }catch(e){console.error(e);toast('❌ Publish failed: '+JSON.stringify(e));if(btn)btn.disabled=false;}
+async function publish(id) {
+  const secEl = document.getElementById('sec-' + id);
+  if (!secEl?.value) { toast('⚠️ Please select a section first.'); return; }
+  const s = allSubs.find(x => x.id === id);
+  if (!s) return;
+  const btn = document.querySelector(`#rc-${CSS.escape(id)} .act-pub`);
+  if (btn) btn.disabled = true;
+  try {
+    await withAuthRetry(() => SG.publishSubmission(s, secEl.value, s.priority || 3));
+    s.status = 'published'; s.section_slug = secEl.value;
+    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue(); renderRecentPub();
+    await loadPublished();
+    toast('🚀 Published to ' + SEC_NAMES[secEl.value]);
+  } catch (e) { toast('❌ ' + (e.message || 'Publish failed')); if (btn) btn.disabled = false; }
 }
 
-async function unpublishSub(subId){
-  if(!confirm('Remove this post from the live magazine? It will stay in your submissions as Approved.'))return;
-  try{
-    // Find the published_content row by submission_id
-    const pub=allPubContent.find(p=>p.submission_id===subId);
-    if(pub) await SG.unpublishContent(pub.id);
-    // Reset submission back to approved
-    await SG.updateSubmission(subId,{status:'approved',published_at:null});
-    const s=allSubs.find(x=>x.id===subId);
-    if(s){s.status='approved';s.published_at=null;}
-    updateStats();applyFilters();renderCapBars();renderReadyQueue();loadPublished();
-    toast('↩ Post removed from live magazine — status reset to Approved');
-  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+async function unpublishSub(subId) {
+  if (!confirm('Remove this post from the live magazine? It will stay in your submissions as Approved.')) return;
+  try {
+    // Atomic via RPC — handles both pc.is_active=false AND submission.status=approved
+    await withAuthRetry(() => SG.unpublishSubmission(subId));
+    const s = allSubs.find(x => x.id === subId);
+    if (s) { s.status = 'approved'; s.published_at = null; }
+    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue();
+    await loadPublished();
+    toast('↩ Post removed from live magazine');
+  } catch (e) { toast('❌ ' + (e.message || 'Unpublish failed')); }
 }
 
-async function publishFromQueue(id){
-  const secEl=document.getElementById('qsec-'+id);
-  if(!secEl?.value){toast('⚠️ Select a section.');return;}
-  const s=allSubs.find(x=>x.id===id);
-  if(!s)return;
-  try{
-    await SG.publishSubmission(s,secEl.value,s.priority||3);
-    s.status='published';s.section_slug=secEl.value;
-    updateStats();applyFilters();renderCapBars();renderReadyQueue();renderRecentPub();loadPublished();
+async function publishFromQueue(id) {
+  const secEl = document.getElementById('qsec-' + id);
+  if (!secEl?.value) { toast('⚠️ Select a section.'); return; }
+  const s = allSubs.find(x => x.id === id);
+  if (!s) return;
+  try {
+    await withAuthRetry(() => SG.publishSubmission(s, secEl.value, s.priority || 3));
+    s.status = 'published'; s.section_slug = secEl.value;
+    updateStats(); applyFilters(); renderCapBars(); renderReadyQueue(); renderRecentPub();
+    await loadPublished();
     toast('🚀 Published!');
-  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+  } catch (e) { toast('❌ ' + (e.message || 'Publish failed')); }
 }
 
-// ── EDIT MODAL ────────────────────────────────────────────
-function openEdit(id, type){
-  const data = type==='submission'
-    ? allSubs.find(x=>x.id===id)
-    : allPubContent.find(x=>x.id===id);
-  if(!data)return;
-  document.getElementById('edit-id').value=id;
-  document.getElementById('edit-type').value=type;
-  document.getElementById('edit-title').value=data.title||'';
-  document.getElementById('edit-content').value=data.content||'';
-  document.getElementById('edit-section').value=data.section_slug||'whats-new';
-  document.getElementById('edit-zone').value=data.zone_slug||'maharashtra';
-  document.getElementById('edit-priority').value=data.priority||3;
-  const imgUrl=(data.extra_data&&data.extra_data.image_url)||'';
-  document.getElementById('edit-image').value=imgUrl;
+// ── Edit modal ──────────────────────────────────────────
+function openEdit(id, type) {
+  const data = type === 'submission' ? allSubs.find(x => x.id === id) : allPubContent.find(x => x.id === id);
+  if (!data) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-type').value = type;
+  document.getElementById('edit-title').value = data.title || '';
+  document.getElementById('edit-content').value = data.content || '';
+  document.getElementById('edit-section').value = data.section_slug || 'whats-new';
+  document.getElementById('edit-zone').value = data.zone_slug || 'maharashtra';
+  document.getElementById('edit-priority').value = data.priority || 3;
+  document.getElementById('edit-image').value = (data.extra_data && data.extra_data.image_url) || '';
   document.getElementById('edit-overlay').classList.add('show');
 }
+function closeEdit() { document.getElementById('edit-overlay').classList.remove('show'); }
 
-function closeEdit(){document.getElementById('edit-overlay').classList.remove('show');}
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const type = document.getElementById('edit-type').value;
+  const title = document.getElementById('edit-title').value.trim().slice(0, 200);
+  const content = document.getElementById('edit-content').value.trim().slice(0, 5000);
+  const section = document.getElementById('edit-section').value;
+  const zone = document.getElementById('edit-zone').value;
+  const priority = parseInt(document.getElementById('edit-priority').value) || 3;
+  const imageUrl = safeImgUrl(document.getElementById('edit-image').value.trim());
 
-async function saveEdit(){
-  const id=document.getElementById('edit-id').value;
-  const type=document.getElementById('edit-type').value;
-  const title=document.getElementById('edit-title').value.trim();
-  const content=document.getElementById('edit-content').value.trim();
-  const section=document.getElementById('edit-section').value;
-  const zone=document.getElementById('edit-zone').value;
-  const priority=parseInt(document.getElementById('edit-priority').value)||3;
-  const imageUrl=document.getElementById('edit-image').value.trim();
+  if (title.length < 3 || content.length < 10) {
+    toast('⚠️ Title (≥3 chars) and content (≥10 chars) are required.');
+    return;
+  }
+  const extra = imageUrl ? { image_url: imageUrl } : {};
 
-  if(!title||!content){toast('⚠️ Title and content are required.');return;}
-
-  const extraUpdate=imageUrl?{image_url:imageUrl}:{};
-
-  try{
-    if(type==='submission'){
-      await SG.updateSubmission(id,{title,content,section_slug:section,zone_slug:zone,priority,extra_data:extraUpdate});
-      const s=allSubs.find(x=>x.id===id);
-      if(s){s.title=title;s.content=content;s.section_slug=section;s.zone_slug=zone;s.priority=priority;s.extra_data=extraUpdate;}
+  try {
+    if (type === 'submission') {
+      await withAuthRetry(() => SG.updateSubmission(id, {
+        title, content, section_slug: section, zone_slug: zone, priority, extra_data: extra
+      }));
+      const s = allSubs.find(x => x.id === id);
+      if (s) { s.title = title; s.content = content; s.section_slug = section; s.zone_slug = zone; s.priority = priority; s.extra_data = extra; }
     } else {
-      // Update published_content directly
-      await sb_update_published(id,{title,content,section_slug:section,zone_slug:zone,priority,extra_data:extraUpdate});
-      const p=allPubContent.find(x=>x.id===id);
-      if(p){p.title=title;p.content=content;p.section_slug=section;p.zone_slug=zone;p.priority=priority;p.extra_data=extraUpdate;}
+      await withAuthRetry(() => SG.updatePublished(id, {
+        title, content, section_slug: section, zone_slug: zone, priority, extra_data: extra
+      }));
+      const p = allPubContent.find(x => x.id === id);
+      if (p) { p.title = title; p.content = content; p.section_slug = section; p.zone_slug = zone; p.priority = priority; p.extra_data = extra; }
     }
     closeEdit();
-    applyFilters();renderCapBars();loadPublished();
+    applyFilters(); renderCapBars();
+    await loadPublished();
     toast('✅ Post updated');
-  }catch(e){toast('❌ Save failed: '+JSON.stringify(e));}
+  } catch (e) { toast('❌ ' + (e.message || 'Save failed')); }
 }
 
-// Direct update to published_content (reuses sb from supabase.js scope)
-async function sb_update_published(id,data){
-  const params=`id=eq.${encodeURIComponent(id)}`;
-  const r=await fetch(`${window.SG_URL||'https://ixdpsknbijcwkynolghs.supabase.co'}/rest/v1/published_content?${params}`,{
-    method:'PATCH',
-    headers:{'apikey':'sb_publishable_y8omoHb5KKK_iLdD47MvYg_NknhP1to','Authorization':'Bearer sb_publishable_y8omoHb5KKK_iLdD47MvYg_NknhP1to','Content-Type':'application/json','Prefer':'return=representation'},
-    body:JSON.stringify(data)
+// ── Publish panel ───────────────────────────────────────
+function renderCapBars() {
+  const pub = allSubs.filter(s => s.status === 'published');
+  let html = '';
+  SECTIONS.forEach(sec => {
+    const count = pub.filter(s => s.section_slug === sec.slug).length;
+    const pct = Math.min(100, Math.round((count / sec.max) * 100));
+    const cls = pct >= 100 ? 'cap-full' : pct >= 50 ? 'cap-mid' : 'cap-empty';
+    html += `<div class="cap-row"><div class="cap-name">${esc(sec.name)}</div><div class="cap-bar-wrap"><div class="cap-bar ${cls}" style="width:${pct}%"></div></div><div class="cap-count">${count}/${sec.max}</div></div>`;
   });
-  if(!r.ok){const e=await r.json();throw e;}
-  return r.json();
+  document.getElementById('cap-bars').innerHTML = html || '<div class="empty" style="padding:8px;">No published items yet.</div>';
 }
 
-// ── PUBLISH PANEL ──────────────────────────────────────────
-function renderCapBars(){
-  const pub=allSubs.filter(s=>s.status==='published');
-  let html='';
-  SECTIONS.forEach(sec=>{
-    const count=pub.filter(s=>s.section_slug===sec.slug).length;
-    const pct=Math.min(100,Math.round((count/sec.max)*100));
-    const cls=pct>=100?'cap-full':pct>=50?'cap-mid':'cap-empty';
-    html+=`<div class="cap-row"><div class="cap-name">${sec.name}</div><div class="cap-bar-wrap"><div class="cap-bar ${cls}" style="width:${pct}%"></div></div><div class="cap-count">${count}/${sec.max}</div></div>`;
-  });
-  document.getElementById('cap-bars').innerHTML=html||'<div class="empty" style="padding:8px;">No published items yet.</div>';
-}
-
-function renderReadyQueue(){
-  const approved=allSubs.filter(s=>s.status==='approved');
-  if(!approved.length){document.getElementById('ready-queue').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">No approved items waiting.</div>';return;}
-  let html=approved.map(s=>`
+function renderReadyQueue() {
+  const approved = allSubs.filter(s => s.status === 'approved');
+  if (!approved.length) { document.getElementById('ready-queue').innerHTML = '<div class="empty" style="padding:12px;font-size:12px;">No approved items waiting.</div>'; return; }
+  const html = approved.map(s => `
     <div class="pq-item">
-      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${CAT_LABELS[s.category]||s.category}</div></div>
-      <select class="rc-sel" id="qsec-${s.id}" style="font-size:11px;"><option value="">Section…</option>${SECTIONS.map(sec=>`<option value="${sec.slug}">${sec.name}</option>`).join('')}</select>
-      <button class="act act-pub" style="font-size:11px;padding:4px 10px;" onclick="publishFromQueue('${s.id}')">Pub</button>
+      <div><div class="pq-title">${esc(s.title)}</div><div class="pq-meta">${esc(s.emp_name)} · ${esc(CAT_LABELS[s.category]||s.category)}</div></div>
+      <select class="rc-sel" id="qsec-${escAttr(s.id)}" style="font-size:11px;"><option value="">Section…</option>${SECTIONS.map(sec => `<option value="${escAttr(sec.slug)}">${esc(sec.name)}</option>`).join('')}</select>
+      <button class="act act-pub" style="font-size:11px;padding:4px 10px;" onclick="publishFromQueue('${escAttr(s.id)}')">Pub</button>
     </div>`).join('');
-  document.getElementById('ready-queue').innerHTML=html;
+  document.getElementById('ready-queue').innerHTML = html;
 }
 
-function renderRecentPub(){
-  const pub=allSubs.filter(s=>s.status==='published').slice(0,8);
-  if(!pub.length){document.getElementById('recent-pub').innerHTML='<div class="empty" style="padding:12px;font-size:12px;">Nothing published yet.</div>';return;}
-  document.getElementById('recent-pub').innerHTML=pub.map(p=>`
+function renderRecentPub() {
+  const pub = allSubs.filter(s => s.status === 'published').slice(0, 8);
+  if (!pub.length) { document.getElementById('recent-pub').innerHTML = '<div class="empty" style="padding:12px;font-size:12px;">Nothing published yet.</div>'; return; }
+  document.getElementById('recent-pub').innerHTML = pub.map(p => `
     <div class="pq-item">
       <div><div class="pq-title">${esc(p.title)}</div><div class="pq-meta">${esc(p.emp_name)}</div></div>
-      <span class="pq-sec">${SEC_NAMES[p.section_slug]||'—'}</span>
+      <span class="pq-sec">${esc(SEC_NAMES[p.section_slug]||'—')}</span>
     </div>`).join('');
 }
 
-// ── LIVE CONTENT ──────────────────────────────────────────
-let filteredPub=[];
-async function loadPublished(){
-  try{
-    let items=await SG.getPublished();
-    allPubContent=items;
-    filteredPub=items;
+// ── Live content (published) ────────────────────────────
+async function loadPublished() {
+  try {
+    // Admin sees EVERY published_content row (active + inactive) for
+    // complete editorial visibility. Public homepage uses getHomepage() which
+    // filters to is_active=true.
+    allPubContent = await withAuthRetry(() => SG.getAllPublished());
     filterPublished();
-    if(document.getElementById('panel-hero')?.classList.contains('active')) loadHeroPanel();
-  }catch(e){document.getElementById('pub-list').innerHTML='<div class="empty">Could not load published content.</div>';}
+    if (document.getElementById('panel-hero')?.classList.contains('active')) loadHeroPanel();
+  } catch (e) {
+    document.getElementById('pub-list').innerHTML = `<div class="empty">${esc(e.message || 'Could not load.')}</div>`;
+  }
 }
 
-function filterPublished(){
-  const zone=document.getElementById('pub-zone-f')?.value||'';
-  const section=document.getElementById('pub-sec-f')?.value||'';
-  const q=(document.getElementById('pub-search')?.value||'').toLowerCase();
-  let items=allPubContent;
-  if(zone)items=items.filter(p=>p.zone_slug===zone);
-  if(section)items=items.filter(p=>p.section_slug===section);
-  if(q)items=items.filter(p=>(p.title+p.content+p.emp_name).toLowerCase().includes(q));
+function filterPublished() {
+  const zone = document.getElementById('pub-zone-f')?.value || '';
+  const section = document.getElementById('pub-sec-f')?.value || '';
+  const q = (document.getElementById('pub-search')?.value || '').toLowerCase();
+  let items = allPubContent;
+  if (zone) items = items.filter(p => p.zone_slug === zone);
+  if (section) items = items.filter(p => p.section_slug === section);
+  if (q) items = items.filter(p => ((p.title||'') + (p.content||'') + (p.emp_name||'')).toLowerCase().includes(q));
   renderPublished(items);
 }
 
-function renderPublished(items){
-  if(!items.length){document.getElementById('pub-list').innerHTML='<div class="empty">No published content for this filter.</div>';return;}
-  const html=items.map(p=>{
-    const imgUrl=p.extra_data&&p.extra_data.image_url;
-    const av=initials(p.emp_name);
-    const avatarHtml=imgUrl
-      ? `<img src="${esc(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`
-      : `<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${av}</div>`;
-    return `<div class="pub-item" id="pi-${p.id}">
+function renderPublished(items) {
+  const root = document.getElementById('pub-list');
+  if (!items.length) { root.innerHTML = '<div class="empty">No published content for this filter.</div>'; return; }
+  const html = items.map(p => {
+    const imgUrl = safeImgUrl(p.extra_data && p.extra_data.image_url);
+    const av = initials(p.emp_name);
+    const avatarHtml = imgUrl
+      ? `<img src="${escAttr(imgUrl)}" class="pi-img" onerror="this.style.display='none'"/>`
+      : `<div class="rc-av" style="background:var(--gr-l);color:var(--gr-d);">${esc(av)}</div>`;
+    return `<div class="pub-item" id="pi-${escAttr(p.id)}">
       ${avatarHtml}
       <div class="pi-body">
         <div class="pi-title">${esc(p.title)}</div>
         <div class="pi-meta">
-          <span class="pi-sec">${SEC_NAMES[p.section_slug]||p.section_slug}</span>
-          <span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span>
+          <span class="pi-sec">${esc(SEC_NAMES[p.section_slug]||p.section_slug)}</span>
+          <span class="pi-zone">${esc(ZONE_NAMES[p.zone_slug]||p.zone_slug)}</span>
           <span style="font-size:11px;color:var(--mu);margin-left:6px;">P${p.priority||3} · ${esc(p.emp_name)}</span>
         </div>
         <div style="font-size:12px;color:var(--mu);">${esc((p.content||'').slice(0,120))}…</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
-        <button class="act act-edit" onclick="openEdit('${p.id}','published')" style="font-size:12px;padding:5px 10px;">✏️ Edit</button>
-        <button class="act act-unpub" onclick="unpubContent('${p.id}')" style="font-size:12px;padding:5px 10px;">↩ Remove</button>
+        <button class="act act-edit" onclick="openEdit('${escAttr(p.id)}','published')" style="font-size:12px;padding:5px 10px;">✏️ Edit</button>
+        <button class="act act-unpub" onclick="unpubContent('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">↩ Remove</button>
       </div>
     </div>`;
   }).join('');
-  document.getElementById('pub-list').innerHTML=html;
+  root.innerHTML = html;
 }
 
-async function unpubContent(id){
-  if(!confirm('Remove this from the live magazine?'))return;
-  try{
-    await SG.unpublishContent(id);
-    allPubContent=allPubContent.filter(p=>p.id!==id);
+async function unpubContent(id) {
+  if (!confirm('Remove this from the live magazine?')) return;
+  try {
+    await withAuthRetry(() => SG.unpublishContent(id));
+    allPubContent = allPubContent.filter(p => p.id !== id);
     filterPublished();
     toast('↩ Removed from live magazine');
-  }catch(e){toast('❌ Failed');}
+  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
-// ── CSV DOWNLOAD ──────────────────────────────────────────
-function downloadCSV(){
-  const zone=document.getElementById('zone-filter').value;
-  const q=(document.getElementById('search-input').value||'').toLowerCase();
-  let list=allSubs;
-  if(currentFilter!=='all')list=list.filter(s=>s.status===currentFilter);
-  if(zone)list=list.filter(s=>s.zone_slug===zone);
-  if(q)list=list.filter(s=>(s.title+s.content+s.emp_name+s.emp_id).toLowerCase().includes(q));
-  if(!list.length){toast('No data to download.');return;}
-  const headers=['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted','Admin Note'];
-  const rows=list.map(s=>[s.emp_id||'',s.emp_name||'',ZONE_NAMES[s.zone_slug]||s.zone_slug||'',(s.extra_data&&s.extra_data.branch)||'',CAT_LABELS[s.category]||s.category||'',s.title||'',s.content||'',s.status||'',SEC_NAMES[s.section_slug]||s.section_slug||'',s.priority||'',s.created_at?new Date(s.created_at).toLocaleDateString('en-IN'):'',s.admin_note||'']);
-  const csv=[headers,...rows].map(row=>row.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`sarvagram-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+// ── CSV download (with injection guard) ─────────────────
+function csvCell(v) {
+  const s = String(v ?? '');
+  const escaped = s.replace(/"/g, '""');
+  // Prefix dangerous leading chars with an apostrophe so Excel does not evaluate as formula
+  if (/^[=+\-@\t\r]/.test(s)) return `"'${escaped}"`;
+  return `"${escaped}"`;
+}
+
+function downloadCSV() {
+  const zone = document.getElementById('zone-filter').value;
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  let list = allSubs;
+  if (currentFilter !== 'all') list = list.filter(s => s.status === currentFilter);
+  if (zone) list = list.filter(s => s.zone_slug === zone);
+  if (q) list = list.filter(s => ((s.title||'') + (s.content||'') + (s.emp_name||'') + (s.emp_id||'')).toLowerCase().includes(q));
+  if (!list.length) { toast('No data to download.'); return; }
+
+  const headers = ['Employee ID','Employee Name','Zone','Branch','Category','Title','Content','Status','Section','Priority','Submitted','Admin Note'];
+  const rows = list.map(s => [
+    s.emp_id || '', s.emp_name || '',
+    ZONE_NAMES[s.zone_slug] || s.zone_slug || '',
+    (s.extra_data && s.extra_data.branch) || '',
+    CAT_LABELS[s.category] || s.category || '',
+    s.title || '', s.content || '', s.status || '',
+    SEC_NAMES[s.section_slug] || s.section_slug || '',
+    s.priority || '',
+    s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN') : '',
+    s.admin_note || ''
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `sarvagram-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
   toast('✅ CSV downloaded');
 }
 
-// ── HERO MANAGEMENT ───────────────────────────────────────
-async function loadHeroPanel(){
-  renderHeroSlides();
-  renderHeroQueue();
-}
+// ── Hero management ─────────────────────────────────────
+async function loadHeroPanel() { renderHeroSlides(); renderHeroQueue(); }
 
-function renderHeroSlides(){
-  const heroItems = allPubContent.filter(p=>p.section_slug==='hero' && p.is_active!==false)
-    .sort((a,b)=>(a.priority||3)-(b.priority||3));
-  const el=document.getElementById('hero-slides-list');
-  if(!heroItems.length){
-    el.innerHTML='<div class="empty" style="padding:12px;">No hero slides set yet. Add posts below.</div>';
+function renderHeroSlides() {
+  const heroItems = allPubContent
+    .filter(p => p.section_slug === 'hero' && p.is_active !== false)
+    .sort((a, b) => (a.priority || 3) - (b.priority || 3));
+  const el = document.getElementById('hero-slides-list');
+  if (!heroItems.length) {
+    el.innerHTML = '<div class="empty" style="padding:12px;">No hero slides set yet. Add posts below.</div>';
     return;
   }
-  el.innerHTML=heroItems.map((p,i)=>`
-    <div class="pub-item" id="hs-${p.id}" style="margin-bottom:8px;">
-      <div class="rc-av" style="background:var(--bl-l);color:var(--bl);font-family:serif;font-size:16px;">${i+1}</div>
+  el.innerHTML = heroItems.map((p, i) => `
+    <div class="pub-item" id="hs-${escAttr(p.id)}" style="margin-bottom:8px;">
+      <div class="rc-av" style="background:var(--bl-l);color:var(--bl);font-family:serif;font-size:16px;">${i + 1}</div>
       <div class="pi-body">
         <div class="pi-title">${esc(p.title)}</div>
         <div class="pi-meta">
-          <span class="pi-zone">${ZONE_NAMES[p.zone_slug]||p.zone_slug}</span>
+          <span class="pi-zone">${esc(ZONE_NAMES[p.zone_slug] || p.zone_slug)}</span>
           <span style="font-size:11px;color:var(--mu);margin-left:6px;">${esc(p.emp_name)}</span>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="act act-unpub" onclick="removeFromHero('${p.id}')" style="font-size:12px;padding:5px 10px;">✕ Remove</button>
-        ${i>0?`<button class="act" onclick="moveHero('${p.id}','up')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↑</button>`:''}
-        ${i<heroItems.length-1?`<button class="act" onclick="moveHero('${p.id}','down')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↓</button>`:''}
+        <button class="act act-unpub" onclick="removeFromHero('${escAttr(p.id)}')" style="font-size:12px;padding:5px 10px;">✕ Remove</button>
+        ${i > 0 ? `<button class="act" onclick="moveHero('${escAttr(p.id)}','up')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↑</button>` : ''}
+        ${i < heroItems.length - 1 ? `<button class="act" onclick="moveHero('${escAttr(p.id)}','down')" style="font-size:11px;padding:4px 8px;border:1px solid var(--bdr);">↓</button>` : ''}
       </div>
     </div>`).join('');
 }
 
-function filterHeroQueue(){
-  renderHeroQueue();
-}
+function filterHeroQueue() { renderHeroQueue(); }
 
-function renderHeroQueue(){
-  const zone=document.getElementById('hero-zone-f')?.value||'';
-  const q=(document.getElementById('hero-search')?.value||'').toLowerCase();
-  // Show all published content that is NOT already in hero, up to 20
-  const heroIds=new Set(allPubContent.filter(p=>p.section_slug==='hero').map(p=>p.id));
-  let pool = allPubContent.filter(p=>p.section_slug!=='hero' && p.is_active!==false && !heroIds.has(p.id));
-  if(zone) pool=pool.filter(p=>p.zone_slug===zone);
-  if(q) pool=pool.filter(p=>(p.title+p.emp_name).toLowerCase().includes(q));
-  pool=pool.slice(0,20);
-  const el=document.getElementById('hero-queue-list');
-  if(!pool.length){el.innerHTML='<div class="empty" style="padding:12px;">No posts found.</div>';return;}
-  el.innerHTML=pool.map(p=>`
+function renderHeroQueue() {
+  const zone = document.getElementById('hero-zone-f')?.value || '';
+  const q = (document.getElementById('hero-search')?.value || '').toLowerCase();
+  const heroIds = new Set(allPubContent.filter(p => p.section_slug === 'hero').map(p => p.id));
+  let pool = allPubContent.filter(p => p.section_slug !== 'hero' && p.is_active !== false && !heroIds.has(p.id));
+  if (zone) pool = pool.filter(p => p.zone_slug === zone);
+  if (q) pool = pool.filter(p => ((p.title||'') + (p.emp_name||'')).toLowerCase().includes(q));
+  pool = pool.slice(0, 20);
+  const el = document.getElementById('hero-queue-list');
+  if (!pool.length) { el.innerHTML = '<div class="empty" style="padding:12px;">No posts found.</div>'; return; }
+  el.innerHTML = pool.map(p => `
     <div class="pq-item">
       <div style="flex:1;">
         <div class="pq-title">${esc(p.title)}</div>
-        <div class="pq-meta">${esc(p.emp_name)} · ${ZONE_NAMES[p.zone_slug]||p.zone_slug} · ${SEC_NAMES[p.section_slug]||p.section_slug}</div>
+        <div class="pq-meta">${esc(p.emp_name)} · ${esc(ZONE_NAMES[p.zone_slug]||p.zone_slug)} · ${esc(SEC_NAMES[p.section_slug]||p.section_slug)}</div>
       </div>
-      <button class="act act-pub" style="font-size:12px;padding:5px 12px;" onclick="addToHero('${p.id}')">+ Add to Hero</button>
+      <button class="act act-pub" style="font-size:12px;padding:5px 12px;" onclick="addToHero('${escAttr(p.id)}')">+ Add to Hero</button>
     </div>`).join('');
 }
 
-async function addToHero(id){
-  const p=allPubContent.find(x=>x.id===id);
-  if(!p){toast('Post not found');return;}
-  const heroItems=allPubContent.filter(x=>x.section_slug==='hero'&&x.is_active!==false);
-  if(heroItems.length>=5){toast('⚠️ Hero already has 5 slides. Remove one first.');return;}
-  try{
-    await sb_update_published(id,{section_slug:'hero',priority:heroItems.length+1});
-    p.section_slug='hero'; p.priority=heroItems.length+1;
+async function addToHero(id) {
+  const p = allPubContent.find(x => x.id === id);
+  if (!p) { toast('Post not found'); return; }
+  const heroItems = allPubContent.filter(x => x.section_slug === 'hero' && x.is_active !== false);
+  if (heroItems.length >= 5) { toast('⚠️ Hero already has 5 slides. Remove one first.'); return; }
+  try {
+    await withAuthRetry(() => SG.updatePublished(id, { section_slug: 'hero', priority: heroItems.length + 1 }));
+    p.section_slug = 'hero'; p.priority = heroItems.length + 1;
     renderHeroSlides(); renderHeroQueue();
     toast('✅ Added to Hero slider');
-  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
-async function removeFromHero(id){
-  const p=allPubContent.find(x=>x.id===id);
-  if(!p)return;
-  // Move back to its original section (whats-new as default) or remove from hero
-  try{
-    const origSection=p.category==='achievement'?'achievements':p.category==='idea'?'ideas':'whats-new';
-    await sb_update_published(id,{section_slug:origSection,priority:3});
-    p.section_slug=origSection; p.priority=3;
+async function removeFromHero(id) {
+  const p = allPubContent.find(x => x.id === id);
+  if (!p) return;
+  try {
+    const origSection = p.category === 'achievement' ? 'achievements' : p.category === 'idea' ? 'ideas' : 'whats-new';
+    await withAuthRetry(() => SG.updatePublished(id, { section_slug: origSection, priority: 3 }));
+    p.section_slug = origSection; p.priority = 3;
     renderHeroSlides(); renderHeroQueue();
-    toast('↩ Removed from Hero — moved back to '+SEC_NAMES[origSection]);
-  }catch(e){toast('❌ Failed: '+JSON.stringify(e));}
+    toast('↩ Moved back to ' + SEC_NAMES[origSection]);
+  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
-async function moveHero(id,dir){
-  const heroItems=allPubContent.filter(p=>p.section_slug==='hero'&&p.is_active!==false)
-    .sort((a,b)=>(a.priority||3)-(b.priority||3));
-  const idx=heroItems.findIndex(p=>p.id===id);
-  if(idx===-1)return;
-  const swapIdx=dir==='up'?idx-1:idx+1;
-  if(swapIdx<0||swapIdx>=heroItems.length)return;
-  const a=heroItems[idx], b=heroItems[swapIdx];
-  const tmpP=a.priority; a.priority=b.priority; b.priority=tmpP;
-  try{
-    await Promise.all([sb_update_published(a.id,{priority:a.priority}),sb_update_published(b.id,{priority:b.priority})]);
+async function moveHero(id, dir) {
+  const heroItems = allPubContent.filter(p => p.section_slug === 'hero' && p.is_active !== false)
+    .sort((a, b) => (a.priority || 3) - (b.priority || 3));
+  const idx = heroItems.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= heroItems.length) return;
+  const a = heroItems[idx], b = heroItems[swapIdx];
+  const tmp = a.priority; a.priority = b.priority; b.priority = tmp;
+  try {
+    await withAuthRetry(() => Promise.all([
+      SG.updatePublished(a.id, { priority: a.priority }),
+      SG.updatePublished(b.id, { priority: b.priority }),
+    ]));
     renderHeroSlides();
     toast('↕ Reordered');
-  }catch(e){toast('❌ Failed');}
+  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
 }
 
-// ── NAV ───────────────────────────────────────────────────
-function showPanel(id,btn){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  document.querySelectorAll('.an-tab,.mt-tab').forEach(t=>t.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  if(id==='publish'){renderReadyQueue();renderCapBars();renderRecentPub();}
-  if(id==='published')loadPublished();
-  if(id==='hero')loadHeroPanel();
+// ── Nav ─────────────────────────────────────────────────
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.an-tab,.mt-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (id === 'publish') { renderReadyQueue(); renderCapBars(); renderRecentPub(); }
+  if (id === 'published') loadPublished();
+  if (id === 'hero') loadHeroPanel();
 }
 
-window.addEventListener('DOMContentLoaded',()=>{
-  if(sessionStorage.getItem('sg_admin_token')){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('admin-shell').style.display='block';
-    loadSubs();loadPublished();
+// ── Init ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  // Wire up Enter key on password field
+  const pwEl = document.getElementById('pw-input');
+  if (pwEl) pwEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  if (SG.checkAdmin()) {
+    // Verify the token still works by making a probe call. If it fails, clear it.
+    try {
+      await SG.getAllSubmissions();
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-shell').style.display = 'block';
+      await loadSubs();
+      await loadPublished();
+    } catch (e) {
+      // Bad/expired token — stay on login screen
+      SG.adminLogout();  // clears token
+      // Don't redirect (adminLogout does); just drop through to login UI
+    }
   }
 });
 </script>
