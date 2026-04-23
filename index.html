@@ -697,11 +697,7 @@ function buildHero(){
   // Hero slides: admin-pinned 'hero' section takes priority, falls back to demo.
   // Note: `title` is plain text; `titleHtml` (if present) is trusted HTML allowed
   // only on hardcoded demo rows. Live rows never set titleHtml.
-  // Hero posts flagged via extra_data.is_hero (section_slug unchanged)
-  const liveHero = allPublished
-    .filter(p => p.is_active !== false && p.extra_data && p.extra_data.is_hero)
-    .sort((a,b) => ((a.extra_data&&a.extra_data.hero_order)||99) - ((b.extra_data&&b.extra_data.hero_order)||99))
-    .slice(0,5);
+  const liveHero = liveBySection('hero').slice(0,5);
   const slides = liveHero.length > 0
     ? liveHero.map(l=>({
         zone:l.zone_slug,

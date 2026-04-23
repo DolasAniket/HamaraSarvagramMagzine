@@ -866,8 +866,8 @@ async function loadHeroPanel() { renderHeroSlides(); renderHeroQueue(); }
 
 function renderHeroSlides() {
   const heroItems = allPubContent
-    .filter(p => p.is_active !== false && p.extra_data && p.extra_data.is_hero)
-    .sort((a, b) => ((a.extra_data&&a.extra_data.hero_order)||99) - ((b.extra_data&&b.extra_data.hero_order)||99));
+    .filter(p => p.section_slug === 'hero' && p.is_active !== false)
+    .sort((a, b) => (a.priority || 3) - (b.priority || 3));
   const el = document.getElementById('hero-slides-list');
   if (!heroItems.length) {
     el.innerHTML = '<div class="empty" style="padding:12px;">No hero slides set yet. Add posts below.</div>';
@@ -896,8 +896,8 @@ function filterHeroQueue() { renderHeroQueue(); }
 function renderHeroQueue() {
   const zone = document.getElementById('hero-zone-f')?.value || '';
   const q = (document.getElementById('hero-search')?.value || '').toLowerCase();
-  const heroIds = new Set(allPubContent.filter(p => p.extra_data && p.extra_data.is_hero).map(p => p.id));
-  let pool = allPubContent.filter(p => p.is_active !== false && !(p.extra_data && p.extra_data.is_hero));
+  const heroIds = new Set(allPubContent.filter(p => p.section_slug === 'hero').map(p => p.id));
+  let pool = allPubContent.filter(p => p.is_active !== false && p.section_slug !== 'hero');
   if (zone) pool = pool.filter(p => p.zone_slug === zone);
   if (q) pool = pool.filter(p => ((p.title||'') + (p.emp_name||'')).toLowerCase().includes(q));
   pool = pool.slice(0, 20);
@@ -916,13 +916,36 @@ function renderHeroQueue() {
 async function addToHero(id) {
   const p = allPubContent.find(x => x.id === id);
   if (!p) { toast('Post not found'); return; }
-  const heroItems = allPubContent.filter(x => x.is_active !== false && x.extra_data && x.extra_data.is_hero);
+  const heroItems = allPubContent.filter(x => x.section_slug === 'hero' && x.is_active !== false);
   if (heroItems.length >= 5) { toast('⚠️ Hero already has 5 slides. Remove one first.'); return; }
   try {
-    // Keep original section_slug — just flag as hero in extra_data
-    const newExtra = Object.assign({}, p.extra_data || {}, { is_hero: true, hero_order: heroItems.length + 1 });
-    await withAuthRetry(() => SG.updatePublished(id, { extra_data: newExtra }));
-    p.extra_data = newExtra;
+    const zonePriority = {gujarat:1, karnataka:2, maharashtra:3, rajasthan:4, telangana:5, all:3};
+    const thisZone = p.zone_slug;
+    const priority = zonePriority[thisZone] || heroItems.length + 1;
+
+    // Check if a hero post already exists for this zone — replace it
+    const existingZoneHero = allPubContent.find(x =>
+      x.section_slug === 'hero' && x.zone_slug === thisZone && x.is_active !== false
+    );
+    if (existingZoneHero) {
+      await withAuthRetry(() => SG.updatePublished(existingZoneHero.id, {
+        title:p.title, content:p.content, emp_name:p.emp_name,
+        emp_id:p.emp_id, category:p.category, extra_data:p.extra_data||{}, priority
+      }));
+      Object.assign(existingZoneHero, {title:p.title,content:p.content,emp_name:p.emp_name,category:p.category,priority});
+      toast('✅ Hero slide for ' + (ZONE_NAMES[thisZone]||thisZone) + ' updated — refresh homepage.');
+    } else {
+      const heroRow = {
+        submission_id:null, section_slug:'hero', zone_slug:thisZone, priority,
+        title:p.title, content:p.content, emp_name:p.emp_name, emp_id:p.emp_id,
+        category:p.category, extra_data:p.extra_data||{}, is_active:true,
+        published_at:new Date().toISOString(), issue_label:p.issue_label||'APR 2026',
+        expires_at:p.expires_at||new Date(Date.now()+30*864e5).toISOString()
+      };
+      const result = await withAuthRetry(()=>SG.insertPublished(heroRow));
+      if(result&&result[0]) allPubContent.push(result[0]);
+      toast('✅ Hero slide added for ' + (ZONE_NAMES[thisZone]||thisZone) + ' — refresh homepage.');
+    }
     renderHeroSlides(); renderHeroQueue();
     toast('✅ Added to Hero slider — refresh the homepage to see it');
   } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
