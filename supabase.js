@@ -389,7 +389,7 @@ window.SG = {
   },
   // ── Helpers ──────────────────────────────────────────────────
   esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
-  escAttr(s){ const e=this.esc(s); return e.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); },
+  escAttr(s){ const e=String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); return e.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); },
   safeImgUrl(u){ if(!u)return ''; const s=String(u).trim(); return /^https?:\/\//i.test(s)?s:''; },
   // ── Public API ───────────────────────────────────────────────
   getHomepage, getPublished, getBirthdays, submitThought, getMySubmissions,
@@ -397,4 +397,10 @@ window.SG = {
   getAllSubmissions, getAllPublished, updateSubmission, updatePublished,
   publishSubmission, unpublishSubmission, unpublishContent,
   adminLogin, adminLogout, checkAdmin,
-};
+}
+
+// ── Global aliases so page scripts can call esc() directly ──
+function esc(s){ return window.SG.esc(s); }
+function escAttr(s){ return window.SG.escAttr(s); }
+function safeImgUrl(u){ return window.SG.safeImgUrl(u); }
+;

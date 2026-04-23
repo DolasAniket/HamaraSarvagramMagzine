@@ -132,14 +132,14 @@ const statusMeta = {
   rejected:  { label: 'Not Selected',  pill: 'sp-rej', step: 1 },
   published: { label: 'Published',     pill: 'sp-pub', step: 3 },
 };
-const catLabels    = (typeof SG !== 'undefined' && SG.CAT_LABELS)  || {thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
-const zoneNames    = (typeof SG !== 'undefined' && SG.ZONE_NAMES)  || {all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
+const catLabels    = (typeof SG !== 'undefined') ? SG.CAT_LABELS : {thought:'Thought',idea:'Idea',achievement:'Achievement',announcement:'Announcement',story:'Field Story',feedback:'Feedback'};
+const zoneNames    = (typeof SG !== 'undefined') ? SG.ZONE_NAMES : {all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
 const sectionNames = {
   hero:'Hero Slider','top-highlight':'Top Highlight','whats-new':"What's New",
   achievements:'Achievements',ideas:'Ideas',spotlight:'Spotlight',
   'on-ground':'On-Ground','quick-bytes':'Quick Bytes','zone-news':'Zone News'
 };
-const esc = (typeof SG !== 'undefined' && SG.esc) || function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+// esc is a global from supabase.js
 
 function ago(dt){
   const ms = Date.now() - new Date(dt);
