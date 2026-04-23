@@ -198,7 +198,7 @@ async function submitThought(data) {
   const payload = {
     emp_id,
     emp_name,
-    zone_slug: (data.zone_slug && data.zone_slug !== 'all') ? data.zone_slug : 'maharashtra',
+    zone_slug: data.zone_slug || 'maharashtra',
     category: data.category || 'thought',
     title,
     content,
@@ -360,13 +360,11 @@ async function unpublishContent(publishedContentId) {
   return updatePublished(publishedContentId, { is_active: false });
 }
 
-// Constants live inside window.SG below — not declared as globals.
-
-// esc/escAttr/safeImgUrl defined inside window.SG below.
-
+// Constants defined inside window.SG below.
+// Helpers defined inside window.SG below.
 // ── Expose to window ───────────────────────────────────────
 window.SG = {
-  // ── Constants (defined here, not as page-level globals) ──────
+  // ── Constants ────────────────────────────────────────────
   SECTIONS: [
     { slug: 'hero',          name: 'Hero Slider',    max: 5 },
     { slug: 'top-highlight', name: 'Top Highlight',  max: 1 },
@@ -379,27 +377,26 @@ window.SG = {
     { slug: 'zone-news',     name: 'Zone News',      max: 6 },
   ],
   ZONES: ['gujarat','karnataka','maharashtra','rajasthan','telangana'],
-  ZONE_NAMES: {
-    all:'All Zones', gujarat:'Gujarat', karnataka:'Karnataka',
-    maharashtra:'Maharashtra', rajasthan:'Rajasthan', telangana:'Telangana',
-  },
-  CAT_LABELS: {
-    thought:'Thought', idea:'Idea', achievement:'Achievement',
-    announcement:'Announcement', story:'Field Story', feedback:'Feedback',
-  },
-  // ── Helpers ──────────────────────────────────────────────────
+  ZONE_NAMES: { all:'All Zones', gujarat:'Gujarat', karnataka:'Karnataka', maharashtra:'Maharashtra', rajasthan:'Rajasthan', telangana:'Telangana' },
+  CAT_LABELS: { thought:'Thought', idea:'Idea', achievement:'Achievement', announcement:'Announcement', story:'Field Story', feedback:'Feedback' },
+  // ── Helpers ──────────────────────────────────────────────
   esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
   escAttr(s){ const e=String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); return e.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); },
-  safeImgUrl(u){ if(!u)return ''; const s=String(u).trim(); return /^https?:\/\//i.test(s)?s:''; },
-  // ── Public API ───────────────────────────────────────────────
+  safeImgUrl(u){ if(!u)return''; const s=String(u).trim(); return /^https?:\/\//i.test(s)?s:''; },
+  // ── API ──────────────────────────────────────────────────
+  // Public
   getHomepage, getPublished, getBirthdays, submitThought, getMySubmissions,
-  // ── Admin API ────────────────────────────────────────────────
+  // Admin
   getAllSubmissions, getAllPublished, updateSubmission, updatePublished,
   publishSubmission, unpublishSubmission, unpublishContent,
   adminLogin, adminLogout, checkAdmin,
+  // Constants
+  SECTIONS, ZONES, ZONE_NAMES, CAT_LABELS,
+  // Helpers
+  esc, escAttr, safeImgUrl,
 }
 
-// ── Global aliases so page scripts can call esc() directly ──
+// Global aliases — HTML files can call esc(), escAttr(), safeImgUrl() directly
 function esc(s){ return window.SG.esc(s); }
 function escAttr(s){ return window.SG.escAttr(s); }
 function safeImgUrl(u){ return window.SG.safeImgUrl(u); }
