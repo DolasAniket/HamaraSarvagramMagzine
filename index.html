@@ -463,9 +463,8 @@ window.addEventListener('scroll',()=>{
 // ═══════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════
-// ZONES and ZN come from supabase.js (loaded above) — no redeclaration needed
-const ZONES = SG.ZONES;
-const ZN    = SG.ZONE_NAMES;
+const ZONES = ['gujarat','karnataka','maharashtra','rajasthan','telangana'];
+const ZN = {all:'All Zones',gujarat:'Gujarat',karnataka:'Karnataka',maharashtra:'Maharashtra',rajasthan:'Rajasthan',telangana:'Telangana'};
 const ZC = {gujarat:'#E65100',karnataka:'#2E7D32',maharashtra:'#1565C0',rajasthan:'#BF360C',telangana:'#4527A0'};
 const ZBG= {gujarat:'#FFF3E0',karnataka:'#E8F5E9',maharashtra:'#E3F2FD',rajasthan:'#FBE9E7',telangana:'#EDE7F6'};
 const ZCLS={gujarat:'zg',karnataka:'zk',maharashtra:'zm',rajasthan:'zr',telangana:'zt'};

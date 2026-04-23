@@ -360,59 +360,41 @@ async function unpublishContent(publishedContentId) {
   return updatePublished(publishedContentId, { is_active: false });
 }
 
-// ── Shared constants (single source of truth) ───────────────
+// Constants live inside window.SG below — not declared as globals.
 
-const SECTIONS = [
-  { slug: 'hero',         name: 'Hero Slider',      max: 5 },
-  { slug: 'top-highlight', name: 'Top Highlight',   max: 1 },
-  { slug: 'whats-new',    name: "What's New",       max: 3 },
-  { slug: 'achievements', name: 'Achievements',     max: 4 },
-  { slug: 'ideas',        name: 'Ideas',            max: 4 },
-  { slug: 'spotlight',    name: 'Spotlight',        max: 2 },
-  { slug: 'on-ground',    name: 'On-Ground',        max: 4 },
-  { slug: 'quick-bytes',  name: 'Quick Bytes',      max: 5 },
-  { slug: 'zone-news',    name: 'Zone News',        max: 6 },
-];
-
-const ZONES = ['gujarat', 'karnataka', 'maharashtra', 'rajasthan', 'telangana'];
-
-const ZONE_NAMES = {
-  all: 'All Zones', gujarat: 'Gujarat', karnataka: 'Karnataka',
-  maharashtra: 'Maharashtra', rajasthan: 'Rajasthan', telangana: 'Telangana',
-};
-
-const CAT_LABELS = {
-  thought: 'Thought', idea: 'Idea', achievement: 'Achievement',
-  announcement: 'Announcement', story: 'Field Story', feedback: 'Feedback',
-};
-
-// ── Escape helpers (used across all pages) ─────────────────
-function esc(s) {
-  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// Attribute-safe escape. Use when inserting into `"..."` attributes.
-function escAttr(s) {
-  return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-// Only allow http(s) image URLs. Rejects javascript:, data:, file: etc.
-function safeImgUrl(u) {
-  if (!u) return '';
-  const s = String(u).trim();
-  return /^https:\/\//i.test(s) ? s : (/^http:\/\//i.test(s) ? s : '');
-}
+// esc/escAttr/safeImgUrl defined inside window.SG below.
 
 // ── Expose to window ───────────────────────────────────────
 window.SG = {
-  // Public
+  // ── Constants (defined here, not as page-level globals) ──────
+  SECTIONS: [
+    { slug: 'hero',          name: 'Hero Slider',    max: 5 },
+    { slug: 'top-highlight', name: 'Top Highlight',  max: 1 },
+    { slug: 'whats-new',     name: "What's New",     max: 3 },
+    { slug: 'achievements',  name: 'Achievements',   max: 4 },
+    { slug: 'ideas',         name: 'Ideas',          max: 4 },
+    { slug: 'spotlight',     name: 'Spotlight',      max: 2 },
+    { slug: 'on-ground',     name: 'On-Ground',      max: 4 },
+    { slug: 'quick-bytes',   name: 'Quick Bytes',    max: 5 },
+    { slug: 'zone-news',     name: 'Zone News',      max: 6 },
+  ],
+  ZONES: ['gujarat','karnataka','maharashtra','rajasthan','telangana'],
+  ZONE_NAMES: {
+    all:'All Zones', gujarat:'Gujarat', karnataka:'Karnataka',
+    maharashtra:'Maharashtra', rajasthan:'Rajasthan', telangana:'Telangana',
+  },
+  CAT_LABELS: {
+    thought:'Thought', idea:'Idea', achievement:'Achievement',
+    announcement:'Announcement', story:'Field Story', feedback:'Feedback',
+  },
+  // ── Helpers ──────────────────────────────────────────────────
+  esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
+  escAttr(s){ const e=this.esc(s); return e.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); },
+  safeImgUrl(u){ if(!u)return ''; const s=String(u).trim(); return /^https?:\/\//i.test(s)?s:''; },
+  // ── Public API ───────────────────────────────────────────────
   getHomepage, getPublished, getBirthdays, submitThought, getMySubmissions,
-  // Admin
+  // ── Admin API ────────────────────────────────────────────────
   getAllSubmissions, getAllPublished, updateSubmission, updatePublished,
   publishSubmission, unpublishSubmission, unpublishContent,
   adminLogin, adminLogout, checkAdmin,
-  // Constants
-  SECTIONS, ZONES, ZONE_NAMES, CAT_LABELS,
-  // Helpers
-  esc, escAttr, safeImgUrl,
 };

@@ -394,10 +394,13 @@ body{font-family:'Mukta',sans-serif;background:var(--bg);color:var(--ink);}
 // admin session token (set via SG.adminLogin).
 // ═══════════════════════════════════════════════════════════
 
-// SECTIONS, CAT_LABELS, ZONE_NAMES are globals from supabase.js
-// SEC_NAMES is derived here
+const SECTIONS = SG.SECTIONS;
 const SEC_NAMES = Object.fromEntries(SECTIONS.map(s => [s.slug, s.name]));
-// esc from supabase.js globals
+const CAT_LABELS = SG.CAT_LABELS;
+const ZONE_NAMES = SG.ZONE_NAMES;
+const esc = SG.esc;
+const escAttr = SG.escAttr;
+const safeImgUrl = SG.safeImgUrl;
 
 let allSubs = [], currentFilter = 'all', selectedIds = new Set(), allPubContent = [];
 
