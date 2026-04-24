@@ -916,40 +916,49 @@ function renderHeroQueue() {
 async function addToHero(id) {
   const p = allPubContent.find(x => x.id === id);
   if (!p) { toast('Post not found'); return; }
-  const heroItems = allPubContent.filter(x => x.section_slug === 'hero' && x.is_active !== false);
-  if (heroItems.length >= 5) { toast('⚠️ Hero already has 5 slides. Remove one first.'); return; }
-  try {
-    const zonePriority = {gujarat:1, karnataka:2, maharashtra:3, rajasthan:4, telangana:5, all:3};
-    const thisZone = p.zone_slug;
-    const priority = zonePriority[thisZone] || heroItems.length + 1;
 
-    // Check if a hero post already exists for this zone — replace it
-    const existingZoneHero = allPubContent.find(x =>
-      x.section_slug === 'hero' && x.zone_slug === thisZone && x.is_active !== false
-    );
+  const heroItems = allPubContent.filter(x => x.section_slug === 'hero' && x.is_active !== false);
+  if (heroItems.length >= 5 && !heroItems.find(x => x.zone_slug === p.zone_slug)) {
+    toast('⚠️ Hero already has 5 slides from different zones. Remove one first.'); return;
+  }
+
+  // Zone priority — Gujarat=1 ... Telangana=5, All=3
+  const zonePriority = {gujarat:1, karnataka:2, maharashtra:3, rajasthan:4, telangana:5, all:3};
+  const thisZone = p.zone_slug;
+  const priority = zonePriority[thisZone] || 3;
+
+  try {
+    // Deactivate any existing hero slide for this zone first
+    const existingZoneHero = heroItems.find(x => x.zone_slug === thisZone);
     if (existingZoneHero) {
-      await withAuthRetry(() => SG.updatePublished(existingZoneHero.id, {
-        title:p.title, content:p.content, emp_name:p.emp_name,
-        emp_id:p.emp_id, category:p.category, extra_data:p.extra_data||{}, priority
-      }));
-      Object.assign(existingZoneHero, {title:p.title,content:p.content,emp_name:p.emp_name,category:p.category,priority});
-      toast('✅ Hero slide for ' + (ZONE_NAMES[thisZone]||thisZone) + ' updated — refresh homepage.');
-    } else {
-      const heroRow = {
-        submission_id:null, section_slug:'hero', zone_slug:thisZone, priority,
-        title:p.title, content:p.content, emp_name:p.emp_name, emp_id:p.emp_id,
-        category:p.category, extra_data:p.extra_data||{}, is_active:true,
-        published_at:new Date().toISOString(), issue_label:p.issue_label||'APR 2026',
-        expires_at:p.expires_at||new Date(Date.now()+30*864e5).toISOString()
-      };
-      const result = await withAuthRetry(()=>SG.insertPublished(heroRow));
-      if(result&&result[0]) allPubContent.push(result[0]);
-      toast('✅ Hero slide added for ' + (ZONE_NAMES[thisZone]||thisZone) + ' — refresh homepage.');
+      await withAuthRetry(() => SG.updatePublished(existingZoneHero.id, { is_active: false }));
+      existingZoneHero.is_active = false;
     }
+
+    // Insert new hero row (copy of post, keeps original in its section)
+    const heroRow = {
+      submission_id: null,
+      section_slug: 'hero',
+      zone_slug: thisZone,
+      priority: priority,
+      title: p.title,
+      content: p.content,
+      emp_name: p.emp_name,
+      emp_id: p.emp_id,
+      category: p.category,
+      extra_data: p.extra_data || {},
+      is_active: true,
+      published_at: new Date().toISOString(),
+      issue_label: p.issue_label || 'APR 2026',
+      expires_at: p.expires_at || new Date(Date.now() + 30*864e5).toISOString()
+    };
+    const result = await withAuthRetry(() => SG.insertPublished(heroRow));
+    if (result && result[0]) allPubContent.push(result[0]);
     renderHeroSlides(); renderHeroQueue();
-    toast('✅ Added to Hero slider — refresh the homepage to see it');
-  } catch (e) { toast('❌ ' + (e.message || 'Failed')); }
+    toast('✅ Hero slide set for ' + (ZONE_NAMES[thisZone]||thisZone) + ' (slot ' + priority + '). Refresh homepage to see.');
+  } catch(e) { toast('❌ ' + (e.message || 'Failed')); }
 }
+
 
 async function removeFromHero(id) {
   const p = allPubContent.find(x => x.id === id);
